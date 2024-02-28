@@ -1,6 +1,7 @@
 //////////////////////////////////////////////////////////////////////
 //
-//    Asl - Another simple language (grammar)
+//    SymbolsVisitor - Walk the parser tree to register symbols
+//                     for the Asl programming language
 //
 //    Copyright (C) 2020-2030  Universitat Politecnica de Catalunya
 //
@@ -26,112 +27,226 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-grammar Asl;
+#include "SymbolsVisitor.h"
+#include "antlr4-runtime.h"
 
-//////////////////////////////////////////////////
-/// Parser Rules
-//////////////////////////////////////////////////
+#include "../common/TypesMgr.h"
+#include "../common/SymTable.h"
+#include "../common/TreeDecoration.h"
+#include "../common/SemErrors.h"
 
-// A program is a list of functions
-program : function+ EOF
-        ;
+#include <iostream>
+#include <string>
+#include <vector>
 
-// A function has a name, a list of parameters and a list of statements
-function
-        : FUNC ID '(' ')' declarations statements ENDFUNC
-        ;
+#include <cstddef>    // std::size_t
 
-declarations
-        : (variable_decl)*
-        ;
+// uncomment the following line to enable debugging messages with DEBUG*
+// #define DEBUG_BUILD
+#include "../common/debug.h"
 
-variable_decl
-        : VAR ID ':' type
-        ;
+// using namespace std;
 
-type    : INT
-        | FLOAT
-        | BOOL
-        | CHAR
-        ;
 
-statements
-        : (statement)*
-        ;
+// Constructor
+SymbolsVisitor::SymbolsVisitor(TypesMgr       & Types,
+                               SymTable       & Symbols,
+                               TreeDecoration & Decorations,
+                               SemErrors      & Errors) :
+  Types{Types},
+  Symbols{Symbols},
+  Decorations{Decorations},
+  Errors{Errors} {
+}
 
-// The different types of instructions
-statement
-          // Assignment
-        : left_expr ASSIGN expr ';'           # assignStmt
-          // if-then-else statement (else is optional)
-        | IF expr THEN statements ENDIF       # ifStmt
-          // A function/procedure call has a list of arguments in parenthesis (possibly empty)
-        | ident '(' ')' ';'                   # procCall
-          // Read a variable
-        | READ left_expr ';'                  # readStmt
-          // Write an expression
-        | WRITE expr ';'                      # writeExpr
-          // Write a string
-        | WRITE STRING ';'                    # writeString
-        ;
+// Methods to visit each kind of node:
+//
+antlrcpp::Any SymbolsVisitor::visitProgram(AslParser::ProgramContext *ctx) {
+  DEBUG_ENTER();
+  SymTable::ScopeId sc = Symbols.pushNewScope(SymTable::GLOBAL_SCOPE_NAME);
+  putScopeDecor(ctx, sc);
+  for (auto ctxFunc : ctx->function()) { 
+    visit(ctxFunc);
+  }
+  // Symbols.print();
+  Symbols.popScope();
+  DEBUG_EXIT();
+  return 0;
+}
 
-// Grammar for left expressions (l-values in C++)
-left_expr
-        : ident
-        ;
+antlrcpp::Any SymbolsVisitor::visitFunction(AslParser::FunctionContext *ctx) {
+  DEBUG_ENTER();
+  std::string funcName = ctx->ID()->getText();
+  SymTable::ScopeId sc = Symbols.pushNewScope(funcName);
+  putScopeDecor(ctx, sc);
+  visit(ctx->declarations());
+  // Symbols.print();
+  Symbols.popScope();
+  std::string ident = ctx->ID()->getText();
+  if (Symbols.findInCurrentScope(ident)) {
+    Errors.declaredIdent(ctx->ID());
+  }
+  else {
+    std::vector<TypesMgr::TypeId> lParamsTy;
+    TypesMgr::TypeId tRet = Types.createVoidTy();
+    TypesMgr::TypeId tFunc = Types.createFunctionTy(lParamsTy, tRet);
+    Symbols.addFunction(ident, tFunc);
+  }
+  DEBUG_EXIT();
+  return 0;
+}
 
-// Grammar for expressions with boolean, relational and aritmetic operators
-expr    : expr op=(MUL|DIV) expr                        # arithmetic
-        | expr op=(PLUS|MINUS) expr                     # arithmetic
-        | expr op=(EQUAL|NEQ|GT|GE|LT|LE) expr          # relational
-        | expr op=AND expr                              # logical
-        | expr op=OR expr                               # logical
-        | INTVAL                                        # value
-        | FLOATVAL                                      # value
-        | ident                                         # exprIdent
-        ;
+antlrcpp::Any SymbolsVisitor::visitDeclarations(AslParser::DeclarationsContext *ctx) {
+  DEBUG_ENTER();
+  visitChildren(ctx);
+  DEBUG_EXIT();
+  return 0;
+}
 
-// Identifiers
-ident   : ID
-        ;
+antlrcpp::Any SymbolsVisitor::visitVariable_decl(AslParser::Variable_declContext *ctx) {
+  DEBUG_ENTER();
+  visit(ctx->type());
+  std::string ident = ctx->ID()->getText();
+  if (Symbols.findInCurrentScope(ident)) {
+    Errors.declaredIdent(ctx->ID());
+  }
+  else {
+    TypesMgr::TypeId t1 = getTypeDecor(ctx->type());
+    Symbols.addLocalVar(ident, t1);
+  }
+  DEBUG_EXIT();
+  return 0;
+}
 
-//////////////////////////////////////////////////
-/// Lexer Rules
-//////////////////////////////////////////////////
+antlrcpp::Any SymbolsVisitor::visitType(AslParser::TypeContext *ctx) {
+  DEBUG_ENTER();
+  if (ctx->INT()) {
+    TypesMgr::TypeId t = Types.createIntegerTy();
+    putTypeDecor(ctx, t);
+  }
+  else if (ctx->FLOAT()) {
+    TypesMgr::TypeId t = Types.createFloatTy();
+    putTypeDecor(ctx, t);
+  }
+  else if (ctx->BOOL()) {
+    TypesMgr::TypeId t = Types.createBooleanTy();
+    putTypeDecor(ctx, t);
+  }
+  else if (ctx->CHAR()) {
+    TypesMgr::TypeId t = Types.createCharacterTy();
+    putTypeDecor(ctx, t);
+  }
 
-ASSIGN    : '=' ;
-EQUAL     : '==' ;
-PLUS      : '+' ;
-MINUS       : '-' ;
-MUL       : '*' ;
-DIV       : '/' ;
-VAR       : 'var' ;
-INT       : 'int' ;
-FLOAT     : 'float' ;
-CHAR      : 'char' ;
-BOOL      : 'bool' ;
-IF        : 'if' ;
-THEN      : 'then' ;
-ELSE      : 'else' ;
-ENDIF     : 'endif' ;
-FUNC      : 'func' ;
-ENDFUNC   : 'endfunc' ;
-READ      : 'read' ;
-WRITE     : 'write' ;
-ID        : ('a'..'z'|'A'..'Z') ('a'..'z'|'A'..'Z'|'_'|'0'..'9')* ;
-INTVAL    : ('0'..'9')+ ;
-FLOATVAL  : (('0'..'9')+ '.' ('0'..'9')* | ('0'..'9')* '.' ('0'..'9')+) ;
+  DEBUG_EXIT();
+  return 0;
+}
 
-// Strings (in quotes) with escape sequences
-STRING    : '"' ( ESC_SEQ | ~('\\'|'"') )* '"' ;
+// antlrcpp::Any SymbolsVisitor::visitStatements(AslParser::StatementsContext *ctx) {
+//   DEBUG_ENTER();
+//   antlrcpp::Any r = visitChildren(ctx);
+//   DEBUG_EXIT();
+//   return r;
+// }
 
-fragment
-ESC_SEQ   : '\\' ('b'|'t'|'n'|'f'|'r'|'"'|'\''|'\\') ;
+// antlrcpp::Any SymbolsVisitor::visitAssignStmt(AslParser::AssignStmtContext *ctx) {
+//   DEBUG_ENTER();
+//   antlrcpp::Any r = visitChildren(ctx);
+//   DEBUG_EXIT();
+//   return r;
+// }
 
-// Comments (inline C++-style)
-COMMENT   : '//' ~('\n'|'\r')* '\r'? '\n' -> skip ;
+// antlrcpp::Any SymbolsVisitor::visitIfStmt(AslParser::IfStmtContext *ctx) {
+//   DEBUG_ENTER();
+//   antlrcpp::Any r = visitChildren(ctx);
+//   DEBUG_EXIT();
+//   return r;
+// }
 
-// White spaces
-WS        : (' '|'\t'|'\r'|'\n')+ -> skip ;
-// Alternative description
-// WS        : [ \t\r\n]+ -> skip ;
+// antlrcpp::Any SymbolsVisitor::visitProcCall(AslParser::ProcCallContext *ctx) {
+//   DEBUG_ENTER();
+//   antlrcpp::Any r = visitChildren(ctx);
+//   DEBUG_EXIT();
+//   return r;
+// }
+
+// antlrcpp::Any SymbolsVisitor::visitReadStmt(AslParser::ReadStmtContext *ctx) {
+//   DEBUG_ENTER();
+//   antlrcpp::Any r = visitChildren(ctx);
+//   DEBUG_EXIT();
+//   return r;
+// }
+
+// antlrcpp::Any SymbolsVisitor::visitWriteExpr(AslParser::WriteExprContext *ctx) {
+//   DEBUG_ENTER();
+//   antlrcpp::Any r = visitChildren(ctx);
+//   DEBUG_EXIT();
+//   return r;
+// }
+
+// antlrcpp::Any SymbolsVisitor::visitWriteString(AslParser::WriteStringContext *ctx) {
+//   DEBUG_ENTER();
+//   antlrcpp::Any r = visitChildren(ctx);
+//   DEBUG_EXIT();
+//   return r;
+// }
+
+// antlrcpp::Any SymbolsVisitor::visitLeft_expr(AslParser::Left_exprContext *ctx) {
+//   DEBUG_ENTER();
+//   antlrcpp::Any r = visitChildren(ctx);
+//   DEBUG_EXIT();
+//   return r;
+// }
+
+// antlrcpp::Any SymbolsVisitor::visitExprIdent(AslParser::ExprIdentContext *ctx) {
+//   DEBUG_ENTER();
+//   antlrcpp::Any r = visitChildren(ctx);
+//   DEBUG_EXIT();
+//   return r;
+// }
+
+// antlrcpp::Any SymbolsVisitor::visitArithmetic(AslParser::ArithmeticContext *ctx) {
+//   DEBUG_ENTER();
+//   antlrcpp::Any r = visitChildren(ctx);
+//   DEBUG_EXIT();
+//   return r;
+// }
+
+// antlrcpp::Any SymbolsVisitor::visitRelational(AslParser::RelationalContext *ctx) {
+//   DEBUG_ENTER();
+//   antlrcpp::Any r = visitChildren(ctx);
+//   DEBUG_EXIT();
+//   return r;
+// }
+
+// antlrcpp::Any SymbolsVisitor::visitValue(AslParser::ValueContext *ctx) {
+//   DEBUG_ENTER();
+//   antlrcpp::Any r = visitChildren(ctx);
+//   DEBUG_EXIT();
+//   return r;
+// }
+
+// antlrcpp::Any SymbolsVisitor::visitIdent(AslParser::IdentContext *ctx) {
+//   DEBUG_ENTER();
+//   antlrcpp::Any r = visitChildren(ctx);
+//   DEBUG_EXIT();
+//   return r;
+// }
+
+
+// Getters for the necessary tree node atributes:
+//   Scope and Type
+SymTable::ScopeId SymbolsVisitor::getScopeDecor(antlr4::ParserRuleContext *ctx) {
+  return Decorations.getScope(ctx);
+}
+TypesMgr::TypeId SymbolsVisitor::getTypeDecor(antlr4::ParserRuleContext *ctx) {
+  return Decorations.getType(ctx);
+}
+
+// Setters for the necessary tree node attributes:
+//   Scope and Type
+void SymbolsVisitor::putScopeDecor(antlr4::ParserRuleContext *ctx, SymTable::ScopeId s) {
+  Decorations.putScope(ctx, s);
+}
+void SymbolsVisitor::putTypeDecor(antlr4::ParserRuleContext *ctx, TypesMgr::TypeId t) {
+  Decorations.putType(ctx, t);
+}
