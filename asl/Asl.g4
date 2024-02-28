@@ -50,6 +50,9 @@ variable_decl
         ;
 
 type    : INT
+        | FLOAT
+        | BOOL
+        | CHAR
         ;
 
 statements
@@ -78,11 +81,14 @@ left_expr
         ;
 
 // Grammar for expressions with boolean, relational and aritmetic operators
-expr    : expr op=MUL expr                    # arithmetic
-        | expr op=PLUS expr                   # arithmetic
-        | expr op=EQUAL expr                  # relational
-        | INTVAL                              # value
-        | ident                               # exprIdent
+expr    : expr op=(MUL|DIV) expr                        # arithmetic
+        | expr op=(PLUS|MINUS) expr                     # arithmetic
+        | expr op=(EQUAL|NEQ|GT|GE|LT|LE) expr          # relational
+        | expr op=AND expr                              # logical
+        | expr op=OR expr                               # logical
+        | INTVAL                                        # value
+        | FLOATVAL                                      # value
+        | ident                                         # exprIdent
         ;
 
 // Identifiers
@@ -96,9 +102,14 @@ ident   : ID
 ASSIGN    : '=' ;
 EQUAL     : '==' ;
 PLUS      : '+' ;
-MUL       : '*';
-VAR       : 'var';
-INT       : 'int';
+MINUS       : '-' ;
+MUL       : '*' ;
+DIV       : '/' ;
+VAR       : 'var' ;
+INT       : 'int' ;
+FLOAT     : 'float' ;
+CHAR      : 'char' ;
+BOOL      : 'bool' ;
 IF        : 'if' ;
 THEN      : 'then' ;
 ELSE      : 'else' ;
@@ -109,6 +120,7 @@ READ      : 'read' ;
 WRITE     : 'write' ;
 ID        : ('a'..'z'|'A'..'Z') ('a'..'z'|'A'..'Z'|'_'|'0'..'9')* ;
 INTVAL    : ('0'..'9')+ ;
+FLOATVAL  : (('0'..'9')+ '.' ('0'..'9')* | ('0'..'9')* '.' ('0'..'9')+) ;
 
 // Strings (in quotes) with escape sequences
 STRING    : '"' ( ESC_SEQ | ~('\\'|'"') )* '"' ;
