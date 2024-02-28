@@ -88,6 +88,8 @@ expr    : expr op=(MUL|DIV) expr                        # arithmetic
         | expr op=OR expr                               # logical
         | INTVAL                                        # value
         | FLOATVAL                                      # value
+        | CHARVAL                                       # value
+        | BOOLVAL                                       # value
         | ident                                         # exprIdent
         ;
 
@@ -101,8 +103,15 @@ ident   : ID
 
 ASSIGN    : '=' ;
 EQUAL     : '==' ;
+NEQ       : '!=' ;
+GT        : '>' ;
+GE        : '>=' ;
+LT        : '<' ;
+LE        : '<=' ;
+AND       : 'and' ;
+OR        : 'or' ;
 PLUS      : '+' ;
-MINUS       : '-' ;
+MINUS     : '-' ;
 MUL       : '*' ;
 DIV       : '/' ;
 VAR       : 'var' ;
@@ -121,6 +130,8 @@ WRITE     : 'write' ;
 ID        : ('a'..'z'|'A'..'Z') ('a'..'z'|'A'..'Z'|'_'|'0'..'9')* ;
 INTVAL    : ('0'..'9')+ ;
 FLOATVAL  : (('0'..'9')+ '.' ('0'..'9')* | ('0'..'9')* '.' ('0'..'9')+) ;
+CHARVAL   : '\'' ( ESC_SEQ | ~('\\'|'"') )* '\'' ;
+BOOLVAL   : ('true'|'false') ;
 
 // Strings (in quotes) with escape sequences
 STRING    : '"' ( ESC_SEQ | ~('\\'|'"') )* '"' ;
