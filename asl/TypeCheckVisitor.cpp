@@ -201,6 +201,21 @@ antlrcpp::Any TypeCheckVisitor::visitLeft_expr(AslParser::Left_exprContext *ctx)
   return 0;
 }
 
+antlrcpp::Any TypeCheckVisitor::visitMinus_unari(AslParser::Minus_unariContext *ctx) {
+  DEBUG_ENTER();
+  visit(ctx->expr());
+  TypesMgr::TypeId t = getTypeDecor(ctx->expr());
+  if ((not Types.isErrorTy(t)) and (not Types.isNumericTy(t)))
+    Errors.incompatibleOperator(ctx->op);
+    
+  if (Types.isIntegerTy(t)) t = Types.createIntegerTy();
+  else if (Types.isFloatTy(t)) t = Types.createFloatTy();
+  putTypeDecor(ctx, t);
+  putIsLValueDecor(ctx, false);
+  DEBUG_EXIT();
+  return 0;
+}
+
 antlrcpp::Any TypeCheckVisitor::visitArithmetic(AslParser::ArithmeticContext *ctx) {
   DEBUG_ENTER();
   visit(ctx->expr(0));
@@ -212,7 +227,7 @@ antlrcpp::Any TypeCheckVisitor::visitArithmetic(AslParser::ArithmeticContext *ct
     Errors.incompatibleOperator(ctx->op);
   
   TypesMgr::TypeId t;
-  if (Types.isFloat(t1) or Types.isFloat(t2)) t = Types.createFloatTy();
+  if (Types.isFloatTy(t1) or Types.isFloatTy(t2)) t = Types.createFloatTy();
   else t = Types.createIntegerTy();
 
   putTypeDecor(ctx, t);
@@ -227,11 +242,20 @@ antlrcpp::Any TypeCheckVisitor::visitRelational(AslParser::RelationalContext *ct
   TypesMgr::TypeId t1 = getTypeDecor(ctx->expr(0));
   visit(ctx->expr(1));
   TypesMgr::TypeId t2 = getTypeDecor(ctx->expr(1));
+  TypesMgr::TypeId t;
   std::string oper = ctx->op->getText();
+  
   if ((not Types.isErrorTy(t1)) and (not Types.isErrorTy(t2)) and
       (not Types.comparableTypes(t1, t2, oper)))
     Errors.incompatibleOperator(ctx->op);
-  TypesMgr::TypeId t = Types.createBooleanTy();
+  
+  if ((oper == ">=" or oper == ">" or oper == "<=" or oper == "<") and ((not Types.isNumericTy(t1)) or (not Types.isNumericTy(t2)))) {
+    Errors.incompatibleOperator(ctx->op);
+  }
+  else {
+    t = Types.createBooleanTy();
+  }
+
   putTypeDecor(ctx, t);
   putIsLValueDecor(ctx, false);
   DEBUG_EXIT();
@@ -254,13 +278,43 @@ antlrcpp::Any TypeCheckVisitor::visitLogical(AslParser::LogicalContext *ctx) {
   return 0;
 }
 
+antlrcpp::Any TypeCheckVisitor::visitLogical_unari(AslParser::Logical_unariContext *ctx) {
+  DEBUG_ENTER();
+  visit(ctx->expr());
+  TypesMgr::TypeId t = getTypeDecor(ctx->expr());
+
+  if ((not Types.isErrorTy(t)) and (not Types.isBooleanTy(t)))
+    Errors.incompatibleOperator(ctx->op);
+    
+  t = Types.createBooleanTy();
+  putTypeDecor(ctx, t);
+  putIsLValueDecor(ctx, false);
+  DEBUG_EXIT();
+  return 0;
+}
+
+antlrcpp::Any TypeCheckVisitor::visitParent(AslParser::ParentContext *ctx) {
+  DEBUG_ENTER();
+  visit(ctx->expr());
+  TypesMgr::TypeId t = getTypeDecor(ctx->expr());
+    
+  if (Types.isIntegerTy(t)) t = Types.createIntegerTy();
+  else if (Types.isFloatTy(t)) t = Types.createFloatTy();
+  else if (Types.isCharacterTy(t)) t = Types.createCharacterTy();
+  else if (Types.isBooleanTy(t)) t = Types.createBooleanTy();
+  putTypeDecor(ctx, t);
+  putIsLValueDecor(ctx, false);
+  DEBUG_EXIT();
+  return 0;
+}
 
 antlrcpp::Any TypeCheckVisitor::visitValue(AslParser::ValueContext *ctx) {
   DEBUG_ENTER();
   TypesMgr::TypeId t;
-  if (ctx->INT()) t = Types.createIntegerTy();
-  else if (ctx->FLOAT()) t = Types.createFloatTy();
-  
+  if (ctx->INTVAL()) t = Types.createIntegerTy();
+  else if (ctx->FLOATVAL()) t = Types.createFloatTy();
+  else if (ctx->CHARVAL()) t = Types.createCharacterTy();
+  else if (ctx->BOOLVAL()) t = Types.createBooleanTy();
   putTypeDecor(ctx, t);
   putIsLValueDecor(ctx, false);
   DEBUG_EXIT();
@@ -298,7 +352,6 @@ antlrcpp::Any TypeCheckVisitor::visitIdent(AslParser::IdentContext *ctx) {
   DEBUG_EXIT();
   return 0;
 }
-
 
 // Getters for the necessary tree node atributes:
 //   Scope, Type ans IsLValue

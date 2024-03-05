@@ -46,7 +46,7 @@ declarations
         ;
 
 variable_decl
-        : VAR ID ':' type
+        : VAR ID /*(',' ID)**/ ':' type
         ;
 
 type    : INT
@@ -81,11 +81,14 @@ left_expr
         ;
 
 // Grammar for expressions with boolean, relational and aritmetic operators
-expr    : expr op=(MUL|DIV) expr                        # arithmetic
+expr    : op=MINUS expr                                 # minus_unari 
+        | expr op=(MUL|DIV) expr                        # arithmetic
         | expr op=(PLUS|MINUS) expr                     # arithmetic
         | expr op=(EQUAL|NEQ|GT|GE|LT|LE) expr          # relational
+        | op=NOT expr                                   # logical_unari
         | expr op=AND expr                              # logical
         | expr op=OR expr                               # logical
+        | LPAR expr RPAR                                # parent
         | INTVAL                                        # value
         | FLOATVAL                                      # value
         | CHARVAL                                       # value
@@ -108,6 +111,7 @@ GT        : '>' ;
 GE        : '>=' ;
 LT        : '<' ;
 LE        : '<=' ;
+NOT       : 'not' ;
 AND       : 'and' ;
 OR        : 'or' ;
 PLUS      : '+' ;
@@ -127,10 +131,14 @@ FUNC      : 'func' ;
 ENDFUNC   : 'endfunc' ;
 READ      : 'read' ;
 WRITE     : 'write' ;
+LPAR      : '(' ;
+RPAR      : ')' ;
+
+
 ID        : ('a'..'z'|'A'..'Z') ('a'..'z'|'A'..'Z'|'_'|'0'..'9')* ;
 INTVAL    : ('0'..'9')+ ;
 FLOATVAL  : (('0'..'9')+ '.' ('0'..'9')* | ('0'..'9')* '.' ('0'..'9')+) ;
-CHARVAL   : '\'' ( ESC_SEQ | ~('\\'|'"') )* '\'' ;
+CHARVAL   : '\'' ( ESC_SEQ | ~('\\'|'"') )? '\'' ; 
 BOOLVAL   : ('true'|'false') ;
 
 // Strings (in quotes) with escape sequences
@@ -144,5 +152,3 @@ COMMENT   : '//' ~('\n'|'\r')* '\r'? '\n' -> skip ;
 
 // White spaces
 WS        : (' '|'\t'|'\r'|'\n')+ -> skip ;
-// Alternative description
-// WS        : [ \t\r\n]+ -> skip ;
