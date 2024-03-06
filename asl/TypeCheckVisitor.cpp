@@ -142,10 +142,24 @@ antlrcpp::Any TypeCheckVisitor::visitIfStmt(AslParser::IfStmtContext *ctx) {
   TypesMgr::TypeId t1 = getTypeDecor(ctx->expr());
   if ((not Types.isErrorTy(t1)) and (not Types.isBooleanTy(t1)))
     Errors.booleanRequired(ctx);
-  visit(ctx->statements());
+
+  if (ctx->ELSE()) visit(ctx->statements(1));
+  else visit(ctx->statements(0));
+  
   DEBUG_EXIT();
   return 0;
 }
+/*
+antlrcpp::Any TypeCheckVisitor::visitWhileStmt(AslParser::WhileStmtContext *ctx) {
+  DEBUG_ENTER();
+  visit(ctx->expr());
+  TypesMgr::TypeId t1 = getTypeDecor(ctx->expr());
+  if ((not Types.isErrorTy(t1)) and (not Types.isBooleanTy(t1)))
+    Errors.booleanRequired(ctx);
+  visit(ctx->statements());
+  DEBUG_EXIT();
+  return 0;
+}*/
 
 antlrcpp::Any TypeCheckVisitor::visitProcCall(AslParser::ProcCallContext *ctx) {
   DEBUG_ENTER();
@@ -249,9 +263,10 @@ antlrcpp::Any TypeCheckVisitor::visitRelational(AslParser::RelationalContext *ct
       (not Types.comparableTypes(t1, t2, oper)))
     Errors.incompatibleOperator(ctx->op);
   
-  if ((oper == ">=" or oper == ">" or oper == "<=" or oper == "<") and ((not Types.isNumericTy(t1)) or (not Types.isNumericTy(t2)))) {
+  if ((oper == ">=" or oper == ">" or oper == "<=" or oper == "<") and 
+      (not Types.isErrorTy(t1)) and (not Types.isErrorTy(t2)) and 
+      ((not Types.isNumericTy(t1)) or (not Types.isNumericTy(t2)))) 
     Errors.incompatibleOperator(ctx->op);
-  }
   else {
     t = Types.createBooleanTy();
   }
@@ -314,7 +329,7 @@ antlrcpp::Any TypeCheckVisitor::visitValue(AslParser::ValueContext *ctx) {
   if (ctx->INTVAL()) t = Types.createIntegerTy();
   else if (ctx->FLOATVAL()) t = Types.createFloatTy();
   else if (ctx->CHARVAL()) t = Types.createCharacterTy();
-  else if (ctx->BOOLVAL()) t = Types.createBooleanTy();
+  else if (ctx->TRUE() or ctx->FALSE()) t = Types.createBooleanTy();
   putTypeDecor(ctx, t);
   putIsLValueDecor(ctx, false);
   DEBUG_EXIT();

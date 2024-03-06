@@ -111,9 +111,13 @@ antlrcpp::Any CodeGenVisitor::visitDeclarations(AslParser::DeclarationsContext *
 antlrcpp::Any CodeGenVisitor::visitVariable_decl(AslParser::Variable_declContext *ctx) {
   DEBUG_ENTER();
   TypesMgr::TypeId   t1 = getTypeDecor(ctx->type());
-  std::size_t      size = Types.getSizeOfType(t1);
+  std::size_t size = Types.getSizeOfType(t1);
+  std::vector<var> vars;
+  for (auto varDeclCtx : ctx->ID()) {
+    vars.push_back(var{varDeclCtx->getText(), Types.to_string(t1), size});
+  }
   DEBUG_EXIT();
-  return var{ctx->ID()->getText(), Types.to_string(t1), size};
+  return vars;
 }
 
 antlrcpp::Any CodeGenVisitor::visitStatements(AslParser::StatementsContext *ctx) {
@@ -151,7 +155,8 @@ antlrcpp::Any CodeGenVisitor::visitIfStmt(AslParser::IfStmtContext *ctx) {
   CodeAttribs     && codAtsE = visit(ctx->expr());
   std::string          addr1 = codAtsE.addr;
   instructionList &    code1 = codAtsE.code;
-  instructionList &&   code2 = visit(ctx->statements());
+  instructionList &&   code2 = visit(ctx->statements(0));
+
   std::string label = codeCounters.newLabelIF();
   std::string labelEndIf = "endif"+label;
   code = code1 || instruction::FJUMP(addr1, labelEndIf) ||

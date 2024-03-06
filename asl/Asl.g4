@@ -46,7 +46,7 @@ declarations
         ;
 
 variable_decl
-        : VAR ID /*(',' ID)**/ ':' type
+        : VAR ID (',' ID)* ':' type
         ;
 
 type    : INT
@@ -62,17 +62,21 @@ statements
 // The different types of instructions
 statement
           // Assignment
-        : left_expr ASSIGN expr ';'           # assignStmt
+        : left_expr ASSIGN expr ';'                             # assignStmt
           // if-then-else statement (else is optional)
-        | IF expr THEN statements ENDIF       # ifStmt
+        | IF expr THEN statements (ELSE statements)? ENDIF      # ifStmt
+        /*  // while-do-endwhile
+        | WHILE expr DO statements ENDWHILE                     # whileStmt */
           // A function/procedure call has a list of arguments in parenthesis (possibly empty)
-        | ident '(' ')' ';'                   # procCall
+        | ident '(' ')' ';'                                     # procCall
           // Read a variable
-        | READ left_expr ';'                  # readStmt
+        | READ left_expr ';'                                    # readStmt
           // Write an expression
-        | WRITE expr ';'                      # writeExpr
+        | WRITE expr ';'                                        # writeExpr
           // Write a string
-        | WRITE STRING ';'                    # writeString
+        | WRITE STRING ';'                                      # writeString
+        /*   // return
+        | RETURN ';'                                            # retSmt */
         ;
 
 // Grammar for left expressions (l-values in C++)
@@ -92,7 +96,7 @@ expr    : op=MINUS expr                                 # minus_unari
         | INTVAL                                        # value
         | FLOATVAL                                      # value
         | CHARVAL                                       # value
-        | BOOLVAL                                       # value
+        | (TRUE|FALSE)                                  # value
         | ident                                         # exprIdent
         ;
 
@@ -104,6 +108,8 @@ ident   : ID
 /// Lexer Rules
 //////////////////////////////////////////////////
 
+TRUE      : 'true' ;
+FALSE     : 'false' ;
 ASSIGN    : '=' ;
 EQUAL     : '==' ;
 NEQ       : '!=' ;
@@ -127,6 +133,10 @@ IF        : 'if' ;
 THEN      : 'then' ;
 ELSE      : 'else' ;
 ENDIF     : 'endif' ;
+WHILE     : 'while' ;
+DO        : 'do' ;
+ENDWHILE  : 'endwhile' ;
+RETURN    : 'return' ;
 FUNC      : 'func' ;
 ENDFUNC   : 'endfunc' ;
 READ      : 'read' ;
@@ -139,7 +149,6 @@ ID        : ('a'..'z'|'A'..'Z') ('a'..'z'|'A'..'Z'|'_'|'0'..'9')* ;
 INTVAL    : ('0'..'9')+ ;
 FLOATVAL  : (('0'..'9')+ '.' ('0'..'9')* | ('0'..'9')* '.' ('0'..'9')+) ;
 CHARVAL   : '\'' ( ESC_SEQ | ~('\\'|'"') )? '\'' ; 
-BOOLVAL   : ('true'|'false') ;
 
 // Strings (in quotes) with escape sequences
 STRING    : '"' ( ESC_SEQ | ~('\\'|'"') )* '"' ;
