@@ -37,9 +37,10 @@ program : function+ EOF
         ;
 
 // A function has a name, a list of parameters and a list of statements
-function
-        : FUNC ID '(' ')' declarations statements ENDFUNC
+function : FUNC ID '(' parameters ')' (':' rettype)? declarations statements ENDFUNC
         ;
+
+parameters : (ID ':' type (',' ID ':' type)*)? ;
 
 declarations
         : (variable_decl)*
@@ -47,7 +48,9 @@ declarations
 
 variable_decl
         : VAR ID (',' ID)* ':' type
-        ;
+        ;     
+
+rettype : type ;
 
 type    : INT
         | FLOAT
@@ -76,7 +79,7 @@ statement
           // Write a string
         | WRITE STRING ';'                                      # writeString
           // return
-        | RETURN ';'                                            # retStmt
+        | RETURN (expr)? ';'                                            # retStmt
         ;
 
 // Grammar for left expressions (l-values in C++)

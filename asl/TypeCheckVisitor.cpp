@@ -201,7 +201,11 @@ antlrcpp::Any TypeCheckVisitor::visitWriteExpr(AslParser::WriteExprContext *ctx)
 
 antlrcpp::Any TypeCheckVisitor::visitRetStmtExpr(AslParser::RetStmtContext *ctx) {
   DEBUG_ENTER();
-  DEBUG_EXIT();
+  if (visit(ctx->expr())) {
+    TypesMgr::TypeId t1 = getTypeDecor(ctx->expr());
+    if ((not Types.isErrorTy(t1)) and (not Types.isPrimitiveTy(t1)))
+      Errors.readWriteRequireBasic(ctx);
+  }
   return 0;
 }
 
