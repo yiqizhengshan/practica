@@ -113,6 +113,8 @@ antlrcpp::Any CodeGenVisitor::visitVariable_decl(AslParser::Variable_declContext
   TypesMgr::TypeId   t1 = getTypeDecor(ctx->type());
   std::size_t size = Types.getSizeOfType(t1);
   std::vector<var> vars;
+
+  //jp_chkt_02
   for (auto varDeclCtx : ctx->ID()) {
     vars.push_back(var{varDeclCtx->getText(), Types.to_string(t1), size});
   }
@@ -155,7 +157,7 @@ antlrcpp::Any CodeGenVisitor::visitIfStmt(AslParser::IfStmtContext *ctx) {
   CodeAttribs     && codAtsE = visit(ctx->expr());
   std::string          addr1 = codAtsE.addr;
   instructionList &    code1 = codAtsE.code;
-  instructionList &&   code2 = visit(ctx->statements(0));
+  instructionList &&   code2 = visit(ctx->statements(0)); //jp_chkt_03
 
   std::string label = codeCounters.newLabelIF();
   std::string labelEndIf = "endif"+label;
