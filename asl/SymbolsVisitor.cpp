@@ -79,10 +79,8 @@ antlrcpp::Any SymbolsVisitor::visitFunction(AslParser::FunctionContext *ctx) {
   std::string funcName = ctx->ID()->getText();
   SymTable::ScopeId sc = Symbols.pushNewScope(funcName);
   putScopeDecor(ctx, sc);
-
   visit(ctx->parameters());
   visit(ctx->declarations());
-  
   // Symbols.print();
   Symbols.popScope();
   std::string ident = ctx->ID()->getText();
@@ -91,45 +89,21 @@ antlrcpp::Any SymbolsVisitor::visitFunction(AslParser::FunctionContext *ctx) {
   }
   else {
     std::vector<TypesMgr::TypeId> lParamsTy;
-    TypesMgr::TypeId tRet;
-    if (visit(ctx->rettype())) {
-      tRet = getTypeDecor(ctx->rettype());
-    }
-    else
-      tRet = Types.createVoidTy();
+    TypesMgr::TypeId tRet = Types.createVoidTy();
     TypesMgr::TypeId tFunc = Types.createFunctionTy(lParamsTy, tRet);
     Symbols.addFunction(ident, tFunc);
-    
-
-    // MIRAR COMO SE HACE RETURN
-    // preguntar como hacer la gestion para indicar el error al TreeNode
-    //      1- Des de el visitStatements le pasamos al visitFunction todos los
-    //         statement(i) que sean del tipo RETURN y en visitFunciton ponemos el error
-    //      2- Pasar por parametro a visitStatements el Id de la funcion para pillar el
-    //         type del return de la funcion (no se puede hacer visit(ctx->statements()) , TypesMgr::TypeId t_ret)
-    vector<TypesMgr::TypesId> tipos = visit(ctx->statements());
-    tam 0 -> error si no es void
-    tam > 0 -> error si no son iguales al de la funcion
-    if (tipos.size() == 0) {
-      if (not tRet.isVoidTy()) mensaje
-    }
-    else {
-      for (int i = 0; i < tipos.size(); ++i) {
-        if (not equalTypes(tipos[i], tRet)) mensaje
-      }
-    }    
   }
-
   DEBUG_EXIT();
   return 0;
 }
 
-antlrcpp::Any SymbolsVisitor::visitParameters(AslParser::visitParametersContext *ctx) {
+antlrcpp::Any SymbolsVisitor::visitParameters(AslParser::ParametersContext *ctx) {
   DEBUG_ENTER();
-  for (int i = 0; i < ctx->type().size(); ++i) {
+  for (long unsigned int i = 0; i < ctx->ID().size(); ++i) {
+    visit(ctx->type(i));
     std::string ident = ctx->ID(i)->getText();
     if (Symbols.findInCurrentScope(ident)) {
-      Errors.declaredIdent(id);
+      Errors.declaredIdent(ctx->ID(i));
     }
     else {
       TypesMgr::TypeId t1 = getTypeDecor(ctx->type(i));
@@ -187,30 +161,12 @@ antlrcpp::Any SymbolsVisitor::visitType(AslParser::TypeContext *ctx) {
   return 0;
 }
 
-antlrcpp::Any SymbolsVisitor::visitStatements(AslParser::StatementsContext *ctx) {
-  DEBUG_ENTER();
-  
-  vector<TypesMgr::TypeId> tipos;
-  for (int i=0; i < ctx->statement().size(); ++i) {
-    visit(ctx->statement(i));
-
-    if (ctx->statement(i)->RETURN()) {
-
-
-      if (visit(ctx->statement(i)->expr()))
-        tipos.push_back(getTypeDecor(ctx->statement(i)->expr()));
-      else tipos.push_back(st_ret = Types.createVoidTy());
-  }
-  
-  DEBUG_EXIT();
-  return tipos;
-}
-
-int func(int x) {
-  if (a > x) return 4;
-  else return false;
-}
-
+// antlrcpp::Any SymbolsVisitor::visitStatements(AslParser::StatementsContext *ctx) {
+//   DEBUG_ENTER();
+//   antlrcpp::Any r = visitChildren(ctx);
+//   DEBUG_EXIT();
+//   return r;
+// }
 
 // antlrcpp::Any SymbolsVisitor::visitAssignStmt(AslParser::AssignStmtContext *ctx) {
 //   DEBUG_ENTER();
