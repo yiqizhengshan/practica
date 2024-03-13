@@ -77,12 +77,13 @@ statement
           // Write a string
         | WRITE STRING ';'                                      # writeString
           // return
-        | RETURN (expr)? ';'                                            # retStmt
+        | RETURN (expr)? ';'                                    # retStmt
         ;
 
 // Grammar for left expressions (l-values in C++)
 left_expr
-        : ident
+        : ident LCLA expr RCLA                          # larray
+        | ident                                         # lexprIdent
         ;
 
 // Grammar for expressions with boolean, relational and aritmetic operators
@@ -98,6 +99,7 @@ expr    : op=MINUS expr                                 # minus_unari
         | FLOATVAL                                      # value
         | CHARVAL                                       # value
         | (TRUE|FALSE)                                  # value
+        | ident LCLA expr RCLA                          # array
         | ident                                         # exprIdent
         ;
 
@@ -144,6 +146,10 @@ READ      : 'read' ;
 WRITE     : 'write' ;
 LPAR      : '(' ;
 RPAR      : ')' ;
+LCLA      : '[' ;
+RCLA      : ']' ;
+ARRAY     : 'array' ;
+OF        : 'of' ;
 
 
 ID        : ('a'..'z'|'A'..'Z') ('a'..'z'|'A'..'Z'|'_'|'0'..'9')* ;
