@@ -84,7 +84,7 @@ antlrcpp::Any SymbolsVisitor::visitFunction(AslParser::FunctionContext *ctx) {
   // Symbols.print();
   Symbols.popScope();
   std::string ident = ctx->ID()->getText();
-  
+
   if (Symbols.findInCurrentScope(ident)) {
     Errors.declaredIdent(ctx->ID());
   }
@@ -152,7 +152,26 @@ antlrcpp::Any SymbolsVisitor::visitVariable_decl(AslParser::Variable_declContext
   return 0;
 }
 
-antlrcpp::Any SymbolsVisitor::visitType(AslParser::TypeContext *ctx) {
+antlrcpp::Any SymbolsVisitor::visitAccessbasic(AslParser::AccessbasicContext *ctx) {
+  DEBUG_ENTER();
+  visit(ctx->basic_type());
+  TypesMgr::TypeId t = getTypeDecor(ctx->basic_type());
+  putTypeDecor(ctx, t);
+  DEBUG_EXIT();
+  return 0;
+}
+
+antlrcpp::Any SymbolsVisitor::visitAccessarray(AslParser::AccessarrayContext *ctx) {
+  DEBUG_ENTER();
+  visit(ctx->basic_type());
+  TypesMgr::TypeId t = getTypeDecor(ctx->basic_type());
+  TypesMgr::TypeId t1 = Types.createArrayTy(std::stoi(ctx->INTVAL()->getText()), t);
+  putTypeDecor(ctx, t1);
+  DEBUG_EXIT();
+  return 0;
+}
+
+antlrcpp::Any SymbolsVisitor::visitBasic_type(AslParser::Basic_typeContext *ctx) {
   DEBUG_ENTER();
   if (ctx->INT()) {
     TypesMgr::TypeId t = Types.createIntegerTy();
@@ -170,7 +189,6 @@ antlrcpp::Any SymbolsVisitor::visitType(AslParser::TypeContext *ctx) {
     TypesMgr::TypeId t = Types.createCharacterTy();
     putTypeDecor(ctx, t);
   }
-
   DEBUG_EXIT();
   return 0;
 }

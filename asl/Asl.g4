@@ -48,12 +48,17 @@ declarations
 
 variable_decl
         : VAR ID (',' ID)* ':' type
-        ;     
+        ;
 
-type    : INT
+basic_type    
+        : INT
         | FLOAT
         | BOOL
         | CHAR
+        ;
+
+type    : basic_type                                    # accessbasic
+        | ARRAY LCLA INTVAL RCLA OF basic_type          # accessarray
         ;
 
 statements

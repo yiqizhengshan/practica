@@ -133,7 +133,7 @@ antlrcpp::Any TypeCheckVisitor::visitAssignStmt(AslParser::AssignStmtContext *ct
     Errors.incompatibleAssignment(ctx->ASSIGN());
   if ((not Types.isErrorTy(t1)) and (not getIsLValueDecor(ctx->left_expr())))
     Errors.nonReferenceableLeftExpr(ctx->left_expr());
-
+    
   DEBUG_EXIT();
   return 0;
   }
@@ -263,6 +263,11 @@ antlrcpp::Any TypeCheckVisitor::visitLarray(AslParser::LarrayContext *ctx) {
     Errors.nonArrayInArrayAccess(ctx->ident());
     t1 = Types.createErrorTy();
     b = false;
+  }
+
+  if (Types.isArrayTy(t1)) {
+    putTypeDecor(ctx, Types.getArrayElemType(t1));
+    putIsLValueDecor(ctx, true);
   }
 
   putTypeDecor(ctx, t1);
