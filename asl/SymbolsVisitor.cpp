@@ -88,8 +88,21 @@ antlrcpp::Any SymbolsVisitor::visitFunction(AslParser::FunctionContext *ctx) {
     Errors.declaredIdent(ctx->ID());
   }
   else {
+    // darle tipo a la funcion
+    TypesMgr::TypeId tRet;
+    if (ctx->type()) {
+      visit(ctx->type());
+      tRet = getTypeDecor(ctx->type());
+    }
+    else tRet = Types.createVoidTy();
+
+    // darle tipo a los parametros
     std::vector<TypesMgr::TypeId> lParamsTy;
-    TypesMgr::TypeId tRet = Types.createVoidTy();
+    for (unsigned int i = 0; i < ctx->parameters()->type().size(); ++i){
+        TypesMgr::TypeId t = getTypeDecor(ctx->parameters()->type(i));
+        lParamsTy.push_back(t);
+    }
+
     TypesMgr::TypeId tFunc = Types.createFunctionTy(lParamsTy, tRet);
     Symbols.addFunction(ident, tFunc);
   }

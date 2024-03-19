@@ -167,14 +167,13 @@ antlrcpp::Any CodeGenVisitor::visitIfStmt(AslParser::IfStmtContext *ctx) {
   return code;
 }
 
-antlrcpp::Any CodeGenVisitor::visitProcCall(AslParser::ProcCallContext *ctx) {
+antlrcpp::Any CodeGenVisitor::visitProcStmt(AslParser::ProcStmtContext *ctx) {
   DEBUG_ENTER();
-  instructionList code;
-  // std::string name = ctx->ident()->ID()->getSymbol()->getText();
-  std::string name = ctx->ident()->getText();
-  code = instruction::CALL(name);
-  DEBUG_EXIT();
-  return code;
+	CodeAttribs && call = visit(ctx->call_to_func());
+	instructionList & code = call.code;
+	DEBUG_EXIT();
+	return code;
+
 }
 
 antlrcpp::Any CodeGenVisitor::visitReadStmt(AslParser::ReadStmtContext *ctx) {
@@ -277,14 +276,14 @@ antlrcpp::Any CodeGenVisitor::visitValue(AslParser::ValueContext *ctx) {
   return codAts;
 }
 
-antlrcpp::Any CodeGenVisitor::visitExprIdent(AslParser::ExprIdentContext *ctx) {
+antlrcpp::Any CodeGenVisitor::visitArray(AslParser::ArrayContext *ctx) {
   DEBUG_ENTER();
   CodeAttribs && codAts = visit(ctx->ident());
   DEBUG_EXIT();
   return codAts;
 }
 
-antlrcpp::Any CodeGenVisitor::visitArray(AslParser::ArrayContext *ctx) {
+antlrcpp::Any CodeGenVisitor::visitExprIdent(AslParser::ExprIdentContext *ctx) {
   DEBUG_ENTER();
   CodeAttribs && codAts = visit(ctx->ident());
   DEBUG_EXIT();

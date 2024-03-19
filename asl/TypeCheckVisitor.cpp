@@ -165,13 +165,40 @@ antlrcpp::Any TypeCheckVisitor::visitWhileStmt(AslParser::WhileStmtContext *ctx)
 
 antlrcpp::Any TypeCheckVisitor::visitProcCall(AslParser::ProcCallContext *ctx) {
   DEBUG_ENTER();
+  
   visit(ctx->ident());
-  TypesMgr::TypeId t1 = getTypeDecor(ctx->ident());
-  if (Types.isErrorTy(t1)) {
-    ;
-  } else if (not Types.isFunctionTy(t1)) {
-    Errors.isNotCallable(ctx->ident());
+  TypesMgr::TypeId t = getTypeDecor(ctx->ident());
+
+  if (not Types.isFunctionTy(t) and not Types.isErrorTy(t)) {
+      Errors.isNotCallable(ctx->ident());
   }
+
+  if ((not Types.isErrorTy(t)) and Types.isFunctionTy(t)){
+
+      // Check parameters types
+      std::vector<TypesMgr::TypeId> t_param_orig = Types.getFuncParamsTypes(t);
+      unsigned int num_params = Types.getNumOfParameters(t);
+
+      if (num_params != ctx->expr().size())
+          Errors.numberOfParameters(ctx->ident());
+
+      for (unsigned int i = 0; i < ctx->expr().size(); ++i){
+
+          visit(ctx->expr(i));
+          TypesMgr::TypeId t_param_caller = getTypeDecor(ctx->expr(i));
+
+          if (i < num_params){
+              if ((not Types.isErrorTy(t_param_caller)) and (not Types.isErrorTy(t_param_orig[i]))
+                  and (not Types.copyableTypes(t_param_orig[i], t_param_caller)))
+                  Errors.incompatibleParameter(ctx->expr(i), i + 1, ctx);
+          }
+      }
+  
+      // Set return type
+      putTypeDecor(ctx, t);
+      putIsLValueDecor(ctx, false);
+  }
+
   DEBUG_EXIT();
   return 0;
 }
@@ -322,6 +349,24 @@ antlrcpp::Any TypeCheckVisitor::visitLogical(AslParser::LogicalContext *ctx) {
   putIsLValueDecor(ctx, false);
   DEBUG_EXIT();
   return 0;
+}
+
+antlrcpp::Any TypeCheckVisitor::visitFunc(AslParser::FuncContext *ctx) {
+	DEBUG_ENTER();
+	visit(ctx->call_to_func());
+	TypesMgr::TypeId t1 = getTypeDecor(ctx->call_to_func());
+	
+	if (not Types.isErrorTy(t1) and Types.isVoidTy(t1)) {
+		Errors.isNotFunction(ctx);
+		putTypeDecor(ctx, Types.createErrorTy());
+	} else {
+		putTypeDecor(ctx, t1);
+	}
+	
+	putIsLValueDecor(ctx, false);
+	
+	DEBUG_EXIT();
+	return 0;
 }
 
 antlrcpp::Any TypeCheckVisitor::visitLogical_unari(AslParser::Logical_unariContext *ctx) {
