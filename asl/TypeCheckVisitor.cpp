@@ -211,6 +211,7 @@ antlrcpp::Any TypeCheckVisitor::visitReadStmt(AslParser::ReadStmtContext *ctx) {
   TypesMgr::TypeId t1 = getTypeDecor(ctx->left_expr());
   if ((not Types.isErrorTy(t1)) and (not Types.isPrimitiveTy(t1)) and
       (not Types.isFunctionTy(t1)))
+
     Errors.readWriteRequireBasic(ctx);
   if ((not Types.isErrorTy(t1)) and (not getIsLValueDecor(ctx->left_expr())))
     Errors.nonReferenceableExpression(ctx);
@@ -269,9 +270,11 @@ antlrcpp::Any TypeCheckVisitor::visitLarray(AslParser::LarrayContext *ctx) {
     putTypeDecor(ctx, Types.getArrayElemType(t1));
     putIsLValueDecor(ctx, true);
   }
-
-  putTypeDecor(ctx, t1);
-  putIsLValueDecor(ctx, b);
+  else {
+    putTypeDecor(ctx, t1); //error
+    putIsLValueDecor(ctx, b); //false
+  }
+  
   DEBUG_EXIT();
   return 0;
 }
