@@ -131,7 +131,6 @@ antlrcpp::Any TypeCheckVisitor::visitAssignStmt(AslParser::AssignStmtContext *ct
 
   if ((not Types.isErrorTy(t1)) and (not Types.isErrorTy(t2)) and (not Types.copyableTypes(t1, t2)))
     Errors.incompatibleAssignment(ctx->ASSIGN());
-
   if ((not Types.isErrorTy(t1)) and (not getIsLValueDecor(ctx->left_expr())))
     Errors.nonReferenceableLeftExpr(ctx->left_expr());
 
@@ -184,7 +183,7 @@ antlrcpp::Any TypeCheckVisitor::visitProcCall(AslParser::ProcCallContext *ctx) {
       if (num_params != ctx->expr().size())
           Errors.numberOfParameters(ctx->ident());
       
-      
+      //jp_chkt_07
       for (unsigned int i = 0; i < ctx->expr().size(); ++i){
 
           visit(ctx->expr(i));
@@ -195,7 +194,8 @@ antlrcpp::Any TypeCheckVisitor::visitProcCall(AslParser::ProcCallContext *ctx) {
                   and (not Types.copyableTypes(t_param_orig[i], t_param_caller)))
                   Errors.incompatibleParameter(ctx->expr(i), i + 1, ctx);
           }
-      }  
+      }
+        
       // Set return type
       putTypeDecor(ctx, t);
       putIsLValueDecor(ctx, false);
@@ -248,17 +248,24 @@ antlrcpp::Any TypeCheckVisitor::visitRetStmtExpr(AslParser::RetStmtContext *ctx)
 antlrcpp::Any TypeCheckVisitor::visitLarray(AslParser::LarrayContext *ctx) {
   DEBUG_ENTER();
   visit(ctx->expr());
-  TypesMgr::TypeId t = getTypeDecor(ctx->expr());
-  if ((not Types.isErrorTy(t)) and (not Types.isIntegerTy(t)))
-    Errors.nonIntegerIndexInArrayAccess(ctx->expr());
-
   visit(ctx->ident());
+  TypesMgr::TypeId t = getTypeDecor(ctx->expr());
   TypesMgr::TypeId t1 = getTypeDecor(ctx->ident());
-  if ((not Types.isErrorTy(t1)) and (not Types.isArrayTy(t1)))
+  bool b = getIsLValueDecor(ctx->ident());
+
+  // jp_chkt_09
+  if ((not Types.isErrorTy(t)) and (not Types.isIntegerTy(t))) {
+    Errors.nonIntegerIndexInArrayAccess(ctx->expr());
+    t1 = Types.createErrorTy();
+    b = false;
+  }
+  if ((not Types.isErrorTy(t1)) and (not Types.isArrayTy(t1))) {
     Errors.nonArrayInArrayAccess(ctx->ident());
+    t1 = Types.createErrorTy();
+    b = false;
+  }
 
   putTypeDecor(ctx, t1);
-  bool b = getIsLValueDecor(ctx->ident());
   putIsLValueDecor(ctx, b);
   DEBUG_EXIT();
   return 0;
@@ -316,9 +323,6 @@ antlrcpp::Any TypeCheckVisitor::visitRelational(AslParser::RelationalContext *ct
   TypesMgr::TypeId t1 = getTypeDecor(ctx->expr(0));
   visit(ctx->expr(1));
   TypesMgr::TypeId t2 = getTypeDecor(ctx->expr(1));
-  
-  std::cout << "t1: " << Types.to_string(t1) << std::endl;
-  std::cout << "t2: " << Types.to_string(t2) << std::endl;
   TypesMgr::TypeId t;
   std::string oper = ctx->op->getText();
   
