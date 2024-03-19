@@ -84,6 +84,7 @@ antlrcpp::Any SymbolsVisitor::visitFunction(AslParser::FunctionContext *ctx) {
   // Symbols.print();
   Symbols.popScope();
   std::string ident = ctx->ID()->getText();
+  
   if (Symbols.findInCurrentScope(ident)) {
     Errors.declaredIdent(ctx->ID());
   }

@@ -125,6 +125,7 @@ int main(int argc, const char* argv[]) {
   // it is needed (on expressions, assignments, parameter passing, etc)
   TypeCheckVisitor typecheck(types, symbols, decorations, errors);
   typecheck.visit(tree);
+  
 
   if (errors.getNumberOfSemanticErrors() > 0) {
     std::cout << "There are semantic errors: no code generated." << std::endl;

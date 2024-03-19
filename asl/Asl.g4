@@ -91,15 +91,15 @@ call_to_func
         ;
 
 // Grammar for expressions with boolean, relational and aritmetic operators
-expr    : op=MINUS expr                                 # minus_unari 
+expr    : LPAR expr RPAR                                # parent
+        | call_to_func                                  # func
+        | op=MINUS expr                                 # minus_unari 
         | expr op=(MUL|DIV) expr                        # arithmetic
         | expr op=(PLUS|MINUS) expr                     # arithmetic
         | expr op=(EQUAL|NEQ|GT|GE|LT|LE) expr          # relational
         | op=NOT expr                                   # logical_unari
         | expr op=AND expr                              # logical
         | expr op=OR expr                               # logical
-        | call_to_func                                  # func
-        | LPAR expr RPAR                                # parent
         | INTVAL                                        # value
         | FLOATVAL                                      # value
         | CHARVAL                                       # value

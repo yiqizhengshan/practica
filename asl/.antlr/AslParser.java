@@ -1033,28 +1033,19 @@ public class AslParser extends Parser {
 			switch ( getInterpreter().adaptivePredict(_input,13,_ctx) ) {
 			case 1:
 				{
-				_localctx = new Minus_unariContext(_localctx);
+				_localctx = new ParentContext(_localctx);
 				_ctx = _localctx;
 				_prevctx = _localctx;
 
 				setState(149);
-				((Minus_unariContext)_localctx).op = match(MINUS);
+				match(LPAR);
 				setState(150);
-				expr(15);
+				expr(0);
+				setState(151);
+				match(RPAR);
 				}
 				break;
 			case 2:
-				{
-				_localctx = new Logical_unariContext(_localctx);
-				_ctx = _localctx;
-				_prevctx = _localctx;
-				setState(151);
-				((Logical_unariContext)_localctx).op = match(NOT);
-				setState(152);
-				expr(11);
-				}
-				break;
-			case 3:
 				{
 				_localctx = new FuncContext(_localctx);
 				_ctx = _localctx;
@@ -1063,17 +1054,26 @@ public class AslParser extends Parser {
 				call_to_func();
 				}
 				break;
-			case 4:
+			case 3:
 				{
-				_localctx = new ParentContext(_localctx);
+				_localctx = new Minus_unariContext(_localctx);
 				_ctx = _localctx;
 				_prevctx = _localctx;
 				setState(154);
-				match(LPAR);
+				((Minus_unariContext)_localctx).op = match(MINUS);
 				setState(155);
-				expr(0);
+				expr(13);
+				}
+				break;
+			case 4:
+				{
+				_localctx = new Logical_unariContext(_localctx);
+				_ctx = _localctx;
+				_prevctx = _localctx;
 				setState(156);
-				match(RPAR);
+				((Logical_unariContext)_localctx).op = match(NOT);
+				setState(157);
+				expr(9);
 				}
 				break;
 			case 5:
@@ -1162,7 +1162,7 @@ public class AslParser extends Parser {
 						_localctx = new ArithmeticContext(new ExprContext(_parentctx, _parentState));
 						pushNewRecursionContext(_localctx, _startState, RULE_expr);
 						setState(170);
-						if (!(precpred(_ctx, 14))) throw new FailedPredicateException(this, "precpred(_ctx, 14)");
+						if (!(precpred(_ctx, 12))) throw new FailedPredicateException(this, "precpred(_ctx, 12)");
 						setState(171);
 						((ArithmeticContext)_localctx).op = _input.LT(1);
 						_la = _input.LA(1);
@@ -1175,7 +1175,7 @@ public class AslParser extends Parser {
 							consume();
 						}
 						setState(172);
-						expr(15);
+						expr(13);
 						}
 						break;
 					case 2:
@@ -1183,7 +1183,7 @@ public class AslParser extends Parser {
 						_localctx = new ArithmeticContext(new ExprContext(_parentctx, _parentState));
 						pushNewRecursionContext(_localctx, _startState, RULE_expr);
 						setState(173);
-						if (!(precpred(_ctx, 13))) throw new FailedPredicateException(this, "precpred(_ctx, 13)");
+						if (!(precpred(_ctx, 11))) throw new FailedPredicateException(this, "precpred(_ctx, 11)");
 						setState(174);
 						((ArithmeticContext)_localctx).op = _input.LT(1);
 						_la = _input.LA(1);
@@ -1196,7 +1196,7 @@ public class AslParser extends Parser {
 							consume();
 						}
 						setState(175);
-						expr(14);
+						expr(12);
 						}
 						break;
 					case 3:
@@ -1204,7 +1204,7 @@ public class AslParser extends Parser {
 						_localctx = new RelationalContext(new ExprContext(_parentctx, _parentState));
 						pushNewRecursionContext(_localctx, _startState, RULE_expr);
 						setState(176);
-						if (!(precpred(_ctx, 12))) throw new FailedPredicateException(this, "precpred(_ctx, 12)");
+						if (!(precpred(_ctx, 10))) throw new FailedPredicateException(this, "precpred(_ctx, 10)");
 						setState(177);
 						((RelationalContext)_localctx).op = _input.LT(1);
 						_la = _input.LA(1);
@@ -1217,7 +1217,7 @@ public class AslParser extends Parser {
 							consume();
 						}
 						setState(178);
-						expr(13);
+						expr(11);
 						}
 						break;
 					case 4:
@@ -1225,11 +1225,11 @@ public class AslParser extends Parser {
 						_localctx = new LogicalContext(new ExprContext(_parentctx, _parentState));
 						pushNewRecursionContext(_localctx, _startState, RULE_expr);
 						setState(179);
-						if (!(precpred(_ctx, 10))) throw new FailedPredicateException(this, "precpred(_ctx, 10)");
+						if (!(precpred(_ctx, 8))) throw new FailedPredicateException(this, "precpred(_ctx, 8)");
 						setState(180);
 						((LogicalContext)_localctx).op = match(AND);
 						setState(181);
-						expr(11);
+						expr(9);
 						}
 						break;
 					case 5:
@@ -1237,11 +1237,11 @@ public class AslParser extends Parser {
 						_localctx = new LogicalContext(new ExprContext(_parentctx, _parentState));
 						pushNewRecursionContext(_localctx, _startState, RULE_expr);
 						setState(182);
-						if (!(precpred(_ctx, 9))) throw new FailedPredicateException(this, "precpred(_ctx, 9)");
+						if (!(precpred(_ctx, 7))) throw new FailedPredicateException(this, "precpred(_ctx, 7)");
 						setState(183);
 						((LogicalContext)_localctx).op = match(OR);
 						setState(184);
-						expr(10);
+						expr(8);
 						}
 						break;
 					}
@@ -1304,15 +1304,15 @@ public class AslParser extends Parser {
 	private boolean expr_sempred(ExprContext _localctx, int predIndex) {
 		switch (predIndex) {
 		case 0:
-			return precpred(_ctx, 14);
-		case 1:
-			return precpred(_ctx, 13);
-		case 2:
 			return precpred(_ctx, 12);
-		case 3:
+		case 1:
+			return precpred(_ctx, 11);
+		case 2:
 			return precpred(_ctx, 10);
+		case 3:
+			return precpred(_ctx, 8);
 		case 4:
-			return precpred(_ctx, 9);
+			return precpred(_ctx, 7);
 		}
 		return true;
 	}
@@ -1409,34 +1409,34 @@ public class AslParser extends Parser {
 		"\u0001\u0000\u0000\u0000\u0090\u0088\u0001\u0000\u0000\u0000\u0090\u0091"+
 		"\u0001\u0000\u0000\u0000\u0091\u0092\u0001\u0000\u0000\u0000\u0092\u0093"+
 		"\u0005&\u0000\u0000\u0093\u0013\u0001\u0000\u0000\u0000\u0094\u0095\u0006"+
-		"\n\uffff\uffff\u0000\u0095\u0096\u0005\u0011\u0000\u0000\u0096\u00a9\u0003"+
-		"\u0014\n\u000f\u0097\u0098\u0005\r\u0000\u0000\u0098\u00a9\u0003\u0014"+
-		"\n\u000b\u0099\u00a9\u0003\u0012\t\u0000\u009a\u009b\u0005%\u0000\u0000"+
-		"\u009b\u009c\u0003\u0014\n\u0000\u009c\u009d\u0005&\u0000\u0000\u009d"+
-		"\u00a9\u0001\u0000\u0000\u0000\u009e\u00a9\u0005,\u0000\u0000\u009f\u00a9"+
-		"\u0005-\u0000\u0000\u00a0\u00a9\u0005.\u0000\u0000\u00a1\u00a9\u0007\u0001"+
-		"\u0000\u0000\u00a2\u00a3\u0003\u0016\u000b\u0000\u00a3\u00a4\u0005\'\u0000"+
-		"\u0000\u00a4\u00a5\u0003\u0014\n\u0000\u00a5\u00a6\u0005(\u0000\u0000"+
-		"\u00a6\u00a9\u0001\u0000\u0000\u0000\u00a7\u00a9\u0003\u0016\u000b\u0000"+
-		"\u00a8\u0094\u0001\u0000\u0000\u0000\u00a8\u0097\u0001\u0000\u0000\u0000"+
-		"\u00a8\u0099\u0001\u0000\u0000\u0000\u00a8\u009a\u0001\u0000\u0000\u0000"+
-		"\u00a8\u009e\u0001\u0000\u0000\u0000\u00a8\u009f\u0001\u0000\u0000\u0000"+
-		"\u00a8\u00a0\u0001\u0000\u0000\u0000\u00a8\u00a1\u0001\u0000\u0000\u0000"+
-		"\u00a8\u00a2\u0001\u0000\u0000\u0000\u00a8\u00a7\u0001\u0000\u0000\u0000"+
-		"\u00a9\u00bb\u0001\u0000\u0000\u0000\u00aa\u00ab\n\u000e\u0000\u0000\u00ab"+
-		"\u00ac\u0007\u0002\u0000\u0000\u00ac\u00ba\u0003\u0014\n\u000f\u00ad\u00ae"+
-		"\n\r\u0000\u0000\u00ae\u00af\u0007\u0003\u0000\u0000\u00af\u00ba\u0003"+
-		"\u0014\n\u000e\u00b0\u00b1\n\f\u0000\u0000\u00b1\u00b2\u0007\u0004\u0000"+
-		"\u0000\u00b2\u00ba\u0003\u0014\n\r\u00b3\u00b4\n\n\u0000\u0000\u00b4\u00b5"+
-		"\u0005\u000e\u0000\u0000\u00b5\u00ba\u0003\u0014\n\u000b\u00b6\u00b7\n"+
-		"\t\u0000\u0000\u00b7\u00b8\u0005\u000f\u0000\u0000\u00b8\u00ba\u0003\u0014"+
-		"\n\n\u00b9\u00aa\u0001\u0000\u0000\u0000\u00b9\u00ad\u0001\u0000\u0000"+
-		"\u0000\u00b9\u00b0\u0001\u0000\u0000\u0000\u00b9\u00b3\u0001\u0000\u0000"+
-		"\u0000\u00b9\u00b6\u0001\u0000\u0000\u0000\u00ba\u00bd\u0001\u0000\u0000"+
-		"\u0000\u00bb\u00b9\u0001\u0000\u0000\u0000\u00bb\u00bc\u0001\u0000\u0000"+
-		"\u0000\u00bc\u0015\u0001\u0000\u0000\u0000\u00bd\u00bb\u0001\u0000\u0000"+
-		"\u0000\u00be\u00bf\u0005+\u0000\u0000\u00bf\u0017\u0001\u0000\u0000\u0000"+
-		"\u0010\u001b&58=FQ_y|\u0084\u008d\u0090\u00a8\u00b9\u00bb";
+		"\n\uffff\uffff\u0000\u0095\u0096\u0005%\u0000\u0000\u0096\u0097\u0003"+
+		"\u0014\n\u0000\u0097\u0098\u0005&\u0000\u0000\u0098\u00a9\u0001\u0000"+
+		"\u0000\u0000\u0099\u00a9\u0003\u0012\t\u0000\u009a\u009b\u0005\u0011\u0000"+
+		"\u0000\u009b\u00a9\u0003\u0014\n\r\u009c\u009d\u0005\r\u0000\u0000\u009d"+
+		"\u00a9\u0003\u0014\n\t\u009e\u00a9\u0005,\u0000\u0000\u009f\u00a9\u0005"+
+		"-\u0000\u0000\u00a0\u00a9\u0005.\u0000\u0000\u00a1\u00a9\u0007\u0001\u0000"+
+		"\u0000\u00a2\u00a3\u0003\u0016\u000b\u0000\u00a3\u00a4\u0005\'\u0000\u0000"+
+		"\u00a4\u00a5\u0003\u0014\n\u0000\u00a5\u00a6\u0005(\u0000\u0000\u00a6"+
+		"\u00a9\u0001\u0000\u0000\u0000\u00a7\u00a9\u0003\u0016\u000b\u0000\u00a8"+
+		"\u0094\u0001\u0000\u0000\u0000\u00a8\u0099\u0001\u0000\u0000\u0000\u00a8"+
+		"\u009a\u0001\u0000\u0000\u0000\u00a8\u009c\u0001\u0000\u0000\u0000\u00a8"+
+		"\u009e\u0001\u0000\u0000\u0000\u00a8\u009f\u0001\u0000\u0000\u0000\u00a8"+
+		"\u00a0\u0001\u0000\u0000\u0000\u00a8\u00a1\u0001\u0000\u0000\u0000\u00a8"+
+		"\u00a2\u0001\u0000\u0000\u0000\u00a8\u00a7\u0001\u0000\u0000\u0000\u00a9"+
+		"\u00bb\u0001\u0000\u0000\u0000\u00aa\u00ab\n\f\u0000\u0000\u00ab\u00ac"+
+		"\u0007\u0002\u0000\u0000\u00ac\u00ba\u0003\u0014\n\r\u00ad\u00ae\n\u000b"+
+		"\u0000\u0000\u00ae\u00af\u0007\u0003\u0000\u0000\u00af\u00ba\u0003\u0014"+
+		"\n\f\u00b0\u00b1\n\n\u0000\u0000\u00b1\u00b2\u0007\u0004\u0000\u0000\u00b2"+
+		"\u00ba\u0003\u0014\n\u000b\u00b3\u00b4\n\b\u0000\u0000\u00b4\u00b5\u0005"+
+		"\u000e\u0000\u0000\u00b5\u00ba\u0003\u0014\n\t\u00b6\u00b7\n\u0007\u0000"+
+		"\u0000\u00b7\u00b8\u0005\u000f\u0000\u0000\u00b8\u00ba\u0003\u0014\n\b"+
+		"\u00b9\u00aa\u0001\u0000\u0000\u0000\u00b9\u00ad\u0001\u0000\u0000\u0000"+
+		"\u00b9\u00b0\u0001\u0000\u0000\u0000\u00b9\u00b3\u0001\u0000\u0000\u0000"+
+		"\u00b9\u00b6\u0001\u0000\u0000\u0000\u00ba\u00bd\u0001\u0000\u0000\u0000"+
+		"\u00bb\u00b9\u0001\u0000\u0000\u0000\u00bb\u00bc\u0001\u0000\u0000\u0000"+
+		"\u00bc\u0015\u0001\u0000\u0000\u0000\u00bd\u00bb\u0001\u0000\u0000\u0000"+
+		"\u00be\u00bf\u0005+\u0000\u0000\u00bf\u0017\u0001\u0000\u0000\u0000\u0010"+
+		"\u001b&58=FQ_y|\u0084\u008d\u0090\u00a8\u00b9\u00bb";
 	public static final ATN _ATN =
 		new ATNDeserializer().deserialize(_serializedATN.toCharArray());
 	static {
