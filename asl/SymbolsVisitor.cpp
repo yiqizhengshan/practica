@@ -91,9 +91,9 @@ antlrcpp::Any SymbolsVisitor::visitFunction(AslParser::FunctionContext *ctx) {
   else {
     // darle tipo a la funcion
     TypesMgr::TypeId tRet;
-    if (ctx->type()) {
-      visit(ctx->type());
-      tRet = getTypeDecor(ctx->type());
+    if (ctx->basic_type()) {
+      visit(ctx->basic_type());
+      tRet = getTypeDecor(ctx->basic_type());
     }
     else tRet = Types.createVoidTy();
 
@@ -193,12 +193,6 @@ antlrcpp::Any SymbolsVisitor::visitBasic_type(AslParser::Basic_typeContext *ctx)
   return 0;
 }
 
-// antlrcpp::Any SymbolsVisitor::visitStatements(AslParser::StatementsContext *ctx) {
-//   DEBUG_ENTER();
-//   antlrcpp::Any r = visitChildren(ctx);
-//   DEBUG_EXIT();
-//   return r;
-// }
 
 // antlrcpp::Any SymbolsVisitor::visitAssignStmt(AslParser::AssignStmtContext *ctx) {
 //   DEBUG_ENTER();

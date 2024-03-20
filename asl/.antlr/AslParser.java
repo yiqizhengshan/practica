@@ -175,8 +175,8 @@ public class AslParser extends Parser {
 			return getRuleContext(StatementsContext.class,0);
 		}
 		public TerminalNode ENDFUNC() { return getToken(AslParser.ENDFUNC, 0); }
-		public TypeContext type() {
-			return getRuleContext(TypeContext.class,0);
+		public Basic_typeContext basic_type() {
+			return getRuleContext(Basic_typeContext.class,0);
 		}
 		public FunctionContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -209,7 +209,7 @@ public class AslParser extends Parser {
 				setState(38);
 				match(T__0);
 				setState(39);
-				type();
+				basic_type();
 				}
 			}
 
@@ -1446,7 +1446,7 @@ public class AslParser extends Parser {
 		"\u001f\u0001\u0000\u0000\u0000\u001f \u0005\u0000\u0000\u0001 \u0001\u0001"+
 		"\u0000\u0000\u0000!\"\u0005!\u0000\u0000\"#\u0005+\u0000\u0000#$\u0005"+
 		"%\u0000\u0000$%\u0003\u0004\u0002\u0000%(\u0005&\u0000\u0000&\'\u0005"+
-		"\u0001\u0000\u0000\')\u0003\f\u0006\u0000(&\u0001\u0000\u0000\u0000()"+
+		"\u0001\u0000\u0000\')\u0003\n\u0005\u0000(&\u0001\u0000\u0000\u0000()"+
 		"\u0001\u0000\u0000\u0000)*\u0001\u0000\u0000\u0000*+\u0003\u0006\u0003"+
 		"\u0000+,\u0003\u000e\u0007\u0000,-\u0005\"\u0000\u0000-\u0003\u0001\u0000"+
 		"\u0000\u0000./\u0005+\u0000\u0000/0\u0005\u0001\u0000\u000007\u0003\f"+
