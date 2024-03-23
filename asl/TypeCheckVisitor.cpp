@@ -290,25 +290,15 @@ antlrcpp::Any TypeCheckVisitor::visitLarray(AslParser::LarrayContext *ctx) {
   bool b = getIsLValueDecor(ctx->ident());
 
   // jp_chkt_09
-  if ((not Types.isErrorTy(t)) and (not Types.isIntegerTy(t))) {
+  if ((not Types.isErrorTy(t)) and (not Types.isIntegerTy(t)))
     Errors.nonIntegerIndexInArrayAccess(ctx->expr());
-    t1 = Types.createErrorTy();
-    b = false;
-  }
-  if ((not Types.isErrorTy(t1)) and (not Types.isArrayTy(t1))) {
+  if ((not Types.isErrorTy(t1)) and (not Types.isArrayTy(t1)))
     Errors.nonArrayInArrayAccess(ctx->ident());
-    t1 = Types.createErrorTy();
-    b = false;
-  }
 
-  if (Types.isArrayTy(t1)) {
-    putTypeDecor(ctx, Types.getArrayElemType(t1));
-    putIsLValueDecor(ctx, true);
-  }
-  else {
-    putTypeDecor(ctx, t1); //error
-    putIsLValueDecor(ctx, b); //false
-  }
+  if (Types.isArrayTy(t1)) putTypeDecor(ctx, Types.getArrayElemType(t1));
+  else putTypeDecor(ctx, Types.createErrorTy()); //error
+
+  putIsLValueDecor(ctx, b);
   
   DEBUG_EXIT();
   return 0;
@@ -346,14 +336,21 @@ antlrcpp::Any TypeCheckVisitor::visitArithmetic(AslParser::ArithmeticContext *ct
   TypesMgr::TypeId t1 = getTypeDecor(ctx->expr(0));
   visit(ctx->expr(1));
   TypesMgr::TypeId t2 = getTypeDecor(ctx->expr(1));
-  if (((not Types.isErrorTy(t1)) and (not Types.isNumericTy(t1))) or
-      ((not Types.isErrorTy(t2)) and (not Types.isNumericTy(t2))))
-    Errors.incompatibleOperator(ctx->op);
+  TypesMgr::TypeId t = Types.createIntegerTy();
   
-  TypesMgr::TypeId t;
-  if (Types.isFloatTy(t1) or Types.isFloatTy(t2)) t = Types.createFloatTy();
-  else t = Types.createIntegerTy();
-
+  if (ctx->op->getText() == "%") {
+    if (((not Types.isErrorTy(t1)) and (not Types.isIntegerTy(t1))) or
+        ((not Types.isErrorTy(t2)) and (not Types.isIntegerTy(t2)))) 
+      Errors.incompatibleOperator(ctx->op);
+  }
+  else {
+    if (((not Types.isErrorTy(t1)) and (not Types.isNumericTy(t1))) or
+        ((not Types.isErrorTy(t2)) and (not Types.isNumericTy(t2))))
+        Errors.incompatibleOperator(ctx->op);
+        
+    if ((Types.isFloatTy(t1) or Types.isFloatTy(t2))) t = Types.createFloatTy();
+  }  
+  
   putTypeDecor(ctx, t);
   putIsLValueDecor(ctx, false);
   DEBUG_EXIT();
