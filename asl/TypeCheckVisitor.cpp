@@ -176,17 +176,9 @@ antlrcpp::Any TypeCheckVisitor::visitProcCall(AslParser::ProcCallContext *ctx) {
   
   visit(ctx->ident());
   TypesMgr::TypeId t = getTypeDecor(ctx->ident());
-  std::vector <TypesMgr::TypeId> expressionTypes;
 
-  // ident LPAR (expr (',' expr)*)? RPAR
-  for (unsigned int i = 0; i < ctx->expr().size(); ++i) {
+  for (unsigned int i = 0; i < ctx->expr().size(); ++i)
     visit(ctx->expr(i));
-    TypesMgr::TypeId t1 = getTypeDecor(ctx->expr(i));
-    expressionTypes.push_back(t1);
-    putTypeDecor(ctx->expr(i), t1);
-    putIsLValueDecor(ctx, false);
-  }
-
 
   if (not Types.isFunctionTy(t) and not Types.isErrorTy(t)) {
       Errors.isNotCallable(ctx->ident());
@@ -202,10 +194,7 @@ antlrcpp::Any TypeCheckVisitor::visitProcCall(AslParser::ProcCallContext *ctx) {
       
       //jp_chkt_07
       for (unsigned int i = 0; i < ctx->expr().size(); ++i){
-
-          // visit(ctx->expr(i));
-          // TypesMgr::TypeId t_param_caller = getTypeDecor(ctx->expr(i));
-          TypesMgr::TypeId t_param_caller = expressionTypes[i];
+          TypesMgr::TypeId t_param_caller = getTypeDecor(ctx->expr(i));
           
           if (i < num_params){
               if ((not Types.isErrorTy(t_param_caller)) and (not Types.isErrorTy(t_param_orig[i]))
@@ -213,12 +202,9 @@ antlrcpp::Any TypeCheckVisitor::visitProcCall(AslParser::ProcCallContext *ctx) {
                   Errors.incompatibleParameter(ctx->expr(i), i + 1, ctx);
           }
       }
-        
-      // Set return type
-      putTypeDecor(ctx, t);
-      putIsLValueDecor(ctx, false);
   }
-
+  putTypeDecor(ctx, t);
+  putIsLValueDecor(ctx, false);
   DEBUG_EXIT();
   return 0;
 }
@@ -331,8 +317,10 @@ antlrcpp::Any TypeCheckVisitor::visitMinus_unari(AslParser::Minus_unariContext *
   DEBUG_ENTER();
   visit(ctx->expr());
   TypesMgr::TypeId t = getTypeDecor(ctx->expr());
-  if ((not Types.isErrorTy(t)) and (not Types.isNumericTy(t)))
+  if ((not Types.isErrorTy(t)) and (not Types.isNumericTy(t))) {
     Errors.incompatibleOperator(ctx->op);
+    t = Types.createErrorTy();
+  }
     
   if (Types.isIntegerTy(t)) t = Types.createIntegerTy();
   else if (Types.isFloatTy(t)) t = Types.createFloatTy();
@@ -352,17 +340,15 @@ antlrcpp::Any TypeCheckVisitor::visitArithmetic(AslParser::ArithmeticContext *ct
   
   if (ctx->op->getText() == "%") {
     if (((not Types.isErrorTy(t1)) and (not Types.isIntegerTy(t1))) or
-        ((not Types.isErrorTy(t2)) and (not Types.isIntegerTy(t2)))) 
+        ((not Types.isErrorTy(t2)) and (not Types.isIntegerTy(t2))))
       Errors.incompatibleOperator(ctx->op);
   }
   else {
     if (((not Types.isErrorTy(t1)) and (not Types.isNumericTy(t1))) or
         ((not Types.isErrorTy(t2)) and (not Types.isNumericTy(t2))))
-        Errors.incompatibleOperator(ctx->op);
-        
+          Errors.incompatibleOperator(ctx->op);      
     if ((Types.isFloatTy(t1) or Types.isFloatTy(t2))) t = Types.createFloatTy();
   }  
-  
   putTypeDecor(ctx, t);
   putIsLValueDecor(ctx, false);
   DEBUG_EXIT();
