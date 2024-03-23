@@ -176,6 +176,17 @@ antlrcpp::Any TypeCheckVisitor::visitProcCall(AslParser::ProcCallContext *ctx) {
   
   visit(ctx->ident());
   TypesMgr::TypeId t = getTypeDecor(ctx->ident());
+  std::vector <TypesMgr::TypeId> expressionTypes;
+
+  // ident LPAR (expr (',' expr)*)? RPAR
+  for (unsigned int i = 0; i < ctx->expr().size(); ++i) {
+    visit(ctx->expr(i));
+    TypesMgr::TypeId t1 = getTypeDecor(ctx->expr(i));
+    expressionTypes.push_back(t1);
+    putTypeDecor(ctx->expr(i), t1);
+    putIsLValueDecor(ctx, false);
+  }
+
 
   if (not Types.isFunctionTy(t) and not Types.isErrorTy(t)) {
       Errors.isNotCallable(ctx->ident());
@@ -192,8 +203,9 @@ antlrcpp::Any TypeCheckVisitor::visitProcCall(AslParser::ProcCallContext *ctx) {
       //jp_chkt_07
       for (unsigned int i = 0; i < ctx->expr().size(); ++i){
 
-          visit(ctx->expr(i));
-          TypesMgr::TypeId t_param_caller = getTypeDecor(ctx->expr(i));
+          // visit(ctx->expr(i));
+          // TypesMgr::TypeId t_param_caller = getTypeDecor(ctx->expr(i));
+          TypesMgr::TypeId t_param_caller = expressionTypes[i];
           
           if (i < num_params){
               if ((not Types.isErrorTy(t_param_caller)) and (not Types.isErrorTy(t_param_orig[i]))
