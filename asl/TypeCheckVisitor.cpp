@@ -151,8 +151,8 @@ antlrcpp::Any TypeCheckVisitor::visitIfStmt(AslParser::IfStmtContext *ctx) {
   if ((not Types.isErrorTy(t1)) and (not Types.isBooleanTy(t1)))
     Errors.booleanRequired(ctx);
 
+  visit(ctx->statements(0));
   if (ctx->ELSE()) visit(ctx->statements(1));
-  else visit(ctx->statements(0));
   
   DEBUG_EXIT();
   return 0;
