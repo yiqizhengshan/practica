@@ -401,19 +401,53 @@ antlrcpp::Any TypeCheckVisitor::visitLogical(AslParser::LogicalContext *ctx) {
 antlrcpp::Any TypeCheckVisitor::visitFunc(AslParser::FuncContext *ctx) {
   DEBUG_ENTER();
 
-  visit(ctx->call_to_func());
-  TypesMgr::TypeId t = getTypeDecor(ctx->call_to_func());
+  visit(ctx->ident());
+  TypesMgr::TypeId t = getTypeDecor(ctx->ident());
+
+  for (unsigned int i = 0; i < ctx->expr().size(); ++i)
+    visit(ctx->expr(i));
+
+  if (not Types.isFunctionTy(t) and not Types.isErrorTy(t)) {
+      Errors.isNotCallable(ctx->ident());
+  }
+  if ((not Types.isErrorTy(t)) and Types.isFunctionTy(t)){
+      
+      // Check parameters types
+      std::vector<TypesMgr::TypeId> t_param_orig = Types.getFuncParamsTypes(t);
+      unsigned int num_params = Types.getNumOfParameters(t);
+
+      if (num_params != ctx->expr().size())
+          Errors.numberOfParameters(ctx->ident());
+      
+      //jp_chkt_07
+      for (unsigned int i = 0; i < ctx->expr().size(); ++i){
+          TypesMgr::TypeId t_param_caller = getTypeDecor(ctx->expr(i));
+          
+          if (i < num_params){
+              if ((not Types.isErrorTy(t_param_caller)) and (not Types.isErrorTy(t_param_orig[i]))
+                  and (not Types.copyableTypes(t_param_orig[i], t_param_caller)))
+                  Errors.incompatibleParameter(ctx->expr(i), i + 1, ctx);
+          }
+      }
+  }
+  
+  // TypesMgr::TypeId t = getTypeDecor(ctx->call_to_func());
 
   if ((not Types.isErrorTy(t)) and Types.isFunctionTy(t)){
 
       TypesMgr::TypeId t_ret = Types.getFuncReturnType(t);
 
-      if (Types.isVoidTy(t_ret))
-          Errors.isNotFunction(ctx->call_to_func());
+      if (Types.isVoidTy(t_ret)) {
+          Errors.isNotFunction(ctx);
+      }
       else {
           putTypeDecor(ctx, t_ret);
           putIsLValueDecor(ctx, false);
       }
+  }
+  else {
+      putTypeDecor(ctx, Types.createErrorTy());
+      putIsLValueDecor(ctx, false);
   }
   DEBUG_EXIT();
   return 0;  
@@ -479,6 +513,7 @@ antlrcpp::Any TypeCheckVisitor::visitArray(AslParser::ArrayContext *ctx) {
 
   bool b = getIsLValueDecor(ctx->ident());
   putIsLValueDecor(ctx, b);
+  DEBUG_EXIT();
   return 0;
 }
 

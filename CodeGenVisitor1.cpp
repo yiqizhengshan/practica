@@ -100,24 +100,10 @@ antlrcpp::Any CodeGenVisitor::visitFunction(AslParser::FunctionContext *ctx) {
 antlrcpp::Any CodeGenVisitor::visitDeclarations(AslParser::DeclarationsContext *ctx) {
   DEBUG_ENTER();
   std::vector<var> lvars;
-  // for (auto & varDeclCtx : ctx->variable_decl()) {
-  //   var onevar = visit(varDeclCtx);
-  //   lvars.push_back(onevar);
-  // }
   for (auto & varDeclCtx : ctx->variable_decl()) {
-    std::vector<var> somevars = visit(varDeclCtx);
-    for (auto & onevar : somevars) {
-      lvars.push_back(onevar);
-    }
+    var onevar = visit(varDeclCtx);
+    lvars.push_back(onevar);
   }
-  /* EL PROFE LO TIENE ASI PARA LOS ARRAYS
-  for (auto & varDeclCtx : ctx->variable_decl()) {
-    std::vector<var> somevars = visit(varDeclCtx);
-    for (auto & onevar : somevars) {
-      lvars.push_back(onevar);
-    }
-  }
-  */
   DEBUG_EXIT();
   return lvars;
 }
@@ -125,15 +111,9 @@ antlrcpp::Any CodeGenVisitor::visitDeclarations(AslParser::DeclarationsContext *
 antlrcpp::Any CodeGenVisitor::visitVariable_decl(AslParser::Variable_declContext *ctx) {
   DEBUG_ENTER();
   TypesMgr::TypeId   t1 = getTypeDecor(ctx->type());
-  std::size_t size = Types.getSizeOfType(t1);
-  std::vector<var> vars;
-
-  //jp_chkt_02
-  for (auto varDeclCtx : ctx->ID()) {
-    vars.push_back(var{varDeclCtx->getText(), Types.to_string_basic(t1), size});
-  }
+  std::size_t      size = Types.getSizeOfType(t1);
   DEBUG_EXIT();
-  return vars;
+  return var{ctx->ID()->getText(), Types.to_string(t1), size};
 }
 
 antlrcpp::Any CodeGenVisitor::visitStatements(AslParser::StatementsContext *ctx) {
@@ -152,7 +132,7 @@ antlrcpp::Any CodeGenVisitor::visitAssignStmt(AslParser::AssignStmtContext *ctx)
   instructionList code;
   CodeAttribs     && codAtsE1 = visit(ctx->left_expr());
   std::string           addr1 = codAtsE1.addr;
-  // std::string           offs1 = codAtsE1.offs;             // es el offset que hay que sumarle a donde hay que guardarse
+  // std::string           offs1 = codAtsE1.offs;
   instructionList &     code1 = codAtsE1.code;
   // TypesMgr::TypeId tid1 = getTypeDecor(ctx->left_expr());
   CodeAttribs     && codAtsE2 = visit(ctx->expr());
@@ -171,8 +151,7 @@ antlrcpp::Any CodeGenVisitor::visitIfStmt(AslParser::IfStmtContext *ctx) {
   CodeAttribs     && codAtsE = visit(ctx->expr());
   std::string          addr1 = codAtsE.addr;
   instructionList &    code1 = codAtsE.code;
-  instructionList &&   code2 = visit(ctx->statements(0)); //jp_chkt_03
-
+  instructionList &&   code2 = visit(ctx->statements());
   std::string label = codeCounters.newLabelIF();
   std::string labelEndIf = "endif"+label;
   code = code1 || instruction::FJUMP(addr1, labelEndIf) ||
@@ -226,14 +205,7 @@ antlrcpp::Any CodeGenVisitor::visitWriteString(AslParser::WriteStringContext *ct
   return code;
 }
 
-antlrcpp::Any CodeGenVisitor::visitLarray(AslParser::LarrayContext *ctx) {
-  DEBUG_ENTER();
-  CodeAttribs && codAts = visit(ctx->ident());
-  DEBUG_EXIT();
-  return codAts;
-}
-
-antlrcpp::Any CodeGenVisitor::visitLexprIdent(AslParser::LexprIdentContext *ctx) {
+antlrcpp::Any CodeGenVisitor::visitLeft_expr(AslParser::Left_exprContext *ctx) {
   DEBUG_ENTER();
   CodeAttribs && codAts = visit(ctx->ident());
   DEBUG_EXIT();
@@ -243,8 +215,8 @@ antlrcpp::Any CodeGenVisitor::visitLexprIdent(AslParser::LexprIdentContext *ctx)
 antlrcpp::Any CodeGenVisitor::visitArithmetic(AslParser::ArithmeticContext *ctx) {
   DEBUG_ENTER();
   CodeAttribs     && codAt1 = visit(ctx->expr(0));
-  std::string         addr1 = codAt1.addr;            //Address
-  instructionList &   code1 = codAt1.code;            //Instruction list
+  std::string         addr1 = codAt1.addr;
+  instructionList &   code1 = codAt1.code;
   CodeAttribs     && codAt2 = visit(ctx->expr(1));
   std::string         addr2 = codAt2.addr;
   instructionList &   code2 = codAt2.code;
@@ -254,9 +226,9 @@ antlrcpp::Any CodeGenVisitor::visitArithmetic(AslParser::ArithmeticContext *ctx)
   // TypesMgr::TypeId  t = getTypeDecor(ctx);
   std::string temp = "%"+codeCounters.newTEMP();
   if (ctx->MUL())
-    code = code || instruction::MUL(temp, addr1, addr2); // Amb floats es FMUL
+    code = code || instruction::MUL(temp, addr1, addr2);
   else // (ctx->PLUS())
-    code = code || instruction::ADD(temp, addr1, addr2); // Amb floats es FADD
+    code = code || instruction::ADD(temp, addr1, addr2);
   CodeAttribs codAts(temp, "", code);
   DEBUG_EXIT();
   return codAts;
@@ -287,13 +259,6 @@ antlrcpp::Any CodeGenVisitor::visitValue(AslParser::ValueContext *ctx) {
   std::string temp = "%"+codeCounters.newTEMP();
   code = instruction::ILOAD(temp, ctx->getText());
   CodeAttribs codAts(temp, "", code);
-  DEBUG_EXIT();
-  return codAts;
-}
-
-antlrcpp::Any CodeGenVisitor::visitArray(AslParser::ArrayContext *ctx) {
-  DEBUG_ENTER();
-  CodeAttribs && codAts = visit(ctx->ident());
   DEBUG_EXIT();
   return codAts;
 }
