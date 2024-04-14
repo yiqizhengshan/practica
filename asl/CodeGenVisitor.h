@@ -77,8 +77,12 @@ public:
   antlrcpp::Any visitWriteString(AslParser::WriteStringContext *ctx);
   antlrcpp::Any visitLarray(AslParser::LarrayContext *ctx);
   antlrcpp::Any visitLexprIdent(AslParser::LexprIdentContext *ctx);
+  antlrcpp::Any visitParent(AslParser::ParentContext *ctx);
+  antlrcpp::Any visitMinus_unari(AslParser::Minus_unariContext *ctx);
   antlrcpp::Any visitArithmetic(AslParser::ArithmeticContext *ctx);
   antlrcpp::Any visitRelational(AslParser::RelationalContext *ctx);
+  antlrcpp::Any visitLogical_unari(AslParser::Logical_unariContext *ctx);
+  antlrcpp::Any visitLogical(AslParser::LogicalContext *ctx);
   antlrcpp::Any visitValue(AslParser::ValueContext *ctx);
   antlrcpp::Any visitArray(AslParser::ArrayContext *ctx);
   antlrcpp::Any visitExprIdent(AslParser::ExprIdentContext *ctx);
