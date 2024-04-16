@@ -39,7 +39,7 @@
 #include <cstddef>    // std::size_t
 
 // uncomment the following line to enable debugging messages with DEBUG*
-// #define DEBUG_BUILD
+//  #define DEBUG_BUILD
 #include "../common/debug.h"
 
 // using namespace std;
@@ -177,6 +177,29 @@ antlrcpp::Any CodeGenVisitor::visitIfStmt(AslParser::IfStmtContext *ctx) {
   std::string labelEndIf = "endif"+label;
   code = code1 || instruction::FJUMP(addr1, labelEndIf) ||
          code2 || instruction::LABEL(labelEndIf);
+  DEBUG_EXIT();
+  return code;
+}
+
+antlrcpp::Any CodeGenVisitor::visitWhileStmt(AslParser::WhileStmtContext *ctx) {
+  DEBUG_ENTER();
+  instructionList code;
+  CodeAttribs     && codAtsE = visit(ctx->expr());
+  std::string          addr1 = codAtsE.addr;
+  instructionList &    code1 = codAtsE.code;
+  instructionList &&   code2 = visit(ctx->statements());
+
+  std::string label = codeCounters.newLabelWHILE();
+  
+  std::string labelStartWhile = "startwhile"+label;
+  std::string labelEndWhile = "endwhile"+label;
+  
+  code = instruction::LABEL(labelStartWhile) ||
+         code1 || // evaluamos la condicion
+         instruction::FJUMP(addr1, labelEndWhile) || // si es falsa salta al final
+         code2 || // ejecutamos el codigo
+         instruction::UJUMP(labelStartWhile) || // vuelve a evaluar la condicion
+         instruction::LABEL(labelEndWhile);
   DEBUG_EXIT();
   return code;
 }
@@ -449,7 +472,18 @@ antlrcpp::Any CodeGenVisitor::visitValue(AslParser::ValueContext *ctx) {
   DEBUG_ENTER();
   instructionList code;
   std::string temp = "%"+codeCounters.newTEMP();
-  code = instruction::ILOAD(temp, ctx->getText());
+  
+  if (ctx->INTVAL())
+    code = instruction::ILOAD(temp, ctx->getText());
+  else if (ctx->FLOATVAL())
+    code = instruction::FLOAD(temp, ctx->getText());
+  else if (ctx->CHARVAL()) 
+    code = instruction::CHLOAD(temp, ctx->getText());
+  else if (ctx->FALSE())
+    code = instruction::ILOAD(temp, "0");
+  else if (ctx->TRUE())
+    code = instruction::ILOAD(temp, "1");
+    
   CodeAttribs codAts(temp, "", code);
   DEBUG_EXIT();
   return codAts;
