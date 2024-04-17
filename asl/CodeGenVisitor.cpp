@@ -39,7 +39,7 @@
 #include <cstddef>    // std::size_t
 
 // uncomment the following line to enable debugging messages with DEBUG*
-//  #define DEBUG_BUILD
+#define DEBUG_BUILD
 #include "../common/debug.h"
 
 // using namespace std;
@@ -85,10 +85,30 @@ antlrcpp::Any CodeGenVisitor::visitFunction(AslParser::FunctionContext *ctx) {
   Symbols.pushThisScope(sc);
   subroutine subr(ctx->ID()->getText());
   codeCounters.reset();
-  std::vector<var> && lvars = visit(ctx->declarations());
-  for (auto & onevar : lvars) {
-    subr.add_var(onevar);
+
+  if (ctx->basic_type()) {
+    TypesMgr::TypeId t = getTypeDecor(ctx->basic_type());
+    subr.add_param("_result", Types.to_string_basic(t), 1);
   }
+  // Parameters
+  visit(ctx->parameters());
+  for (long unsigned int i = 0; i < ctx->parameters()->ID().size(); ++i) {
+    TypesMgr::TypeId t = getTypeDecor(ctx->parameters()->type(i));
+    std::string name = ctx->parameters()->ID(i)->getText(); 
+    subr.add_param(name, Types.to_string_basic(t), 1);
+  }
+
+  // Declarations
+  visit(ctx->declarations());
+  //auto init = ctx->declarations();
+  for (long unsigned int i = 0; i < ctx->declarations()->variable_decl().size(); ++i) {
+    TypesMgr::TypeId t = getTypeDecor(ctx->declarations()->variable_decl(i)->type());
+    for (long unsigned int j = 0; j < ctx->declarations()->variable_decl(i)->ID().size(); ++j) {
+      std::string name = ctx->declarations()->variable_decl(i)->ID(j)->getText();
+      subr.add_var(name, Types.to_string_basic(t), 1);
+    }
+  }
+
   instructionList && code = visit(ctx->statements());
   code = code || instruction(instruction::RETURN());
   subr.set_instructions(code);
@@ -209,9 +229,30 @@ antlrcpp::Any CodeGenVisitor::visitProcCall(AslParser::ProcCallContext *ctx) {
   instructionList code;
   // std::string name = ctx->ident()->ID()->getSymbol()->getText();
   std::string name = ctx->ident()->getText();
-  code = instruction::CALL(name);
+  TypesMgr::TypeId t1 = getTypeDecor(ctx->ident());
+  TypesMgr::TypeId tret = Types.getFuncReturnType(t1);
+
+  std::string temp = "%"+codeCounters.newTEMP();
+  if (not Types.isVoidTy(tret)) 
+    code = code || instruction::PUSH(); // push to safe space for the return type
+
+  for (long unsigned int i = 0; i < ctx->expr().size(); ++i) {
+    CodeAttribs     && codAtsE = visit(ctx->expr(i));
+    std::string          addr1 = codAtsE.addr;
+    code = code || instruction::PUSH(addr1);
+  }
+
+  code = code || instruction::CALL(name);
+
+  for (long unsigned int i = 0; i < ctx->expr().size(); ++i) 
+    code = code || instruction::POP();
+  
+  code = code || instruction::POP(temp); // pop of the return value
+  
+  CodeAttribs codAts(temp, "", code);
+
   DEBUG_EXIT();
-  return code;
+  return codAts;
 }
 
 antlrcpp::Any CodeGenVisitor::visitReadStmt(AslParser::ReadStmtContext *ctx) {
