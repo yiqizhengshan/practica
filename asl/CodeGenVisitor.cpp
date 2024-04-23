@@ -39,7 +39,7 @@
 #include <cstddef>    // std::size_t
 
 // uncomment the following line to enable debugging messages with DEBUG*
-#define DEBUG_BUILD
+//  #define DEBUG_BUILD
 #include "../common/debug.h"
 
 // using namespace std;
@@ -295,6 +295,25 @@ antlrcpp::Any CodeGenVisitor::visitWriteString(AslParser::WriteStringContext *ct
   return code;
 }
 
+antlrcpp::Any CodeGenVisitor::visitRetStmt(AslParser::RetStmtContext *ctx) {
+  DEBUG_ENTER();
+  if (ctx->expr() == nullptr) {
+    DEBUG_EXIT();
+    return instruction::RETURN();
+  }
+  else {
+    CodeAttribs     && codAt1 = visit(ctx->expr());
+    // std::string         offs1 = codAt1.offs;
+    std::string           addr = codAt1.addr;
+    instructionList &    code1 = codAt1.code;
+    instructionList &     code = code1;
+    
+    code = code || instruction::LOAD("_result", addr) || instruction::RETURN();
+    DEBUG_EXIT();
+    return code;
+  }
+}
+
 antlrcpp::Any CodeGenVisitor::visitLarray(AslParser::LarrayContext *ctx) {
   DEBUG_ENTER();
   CodeAttribs && codAts = visit(ctx->ident());
@@ -312,6 +331,37 @@ antlrcpp::Any CodeGenVisitor::visitLexprIdent(AslParser::LexprIdentContext *ctx)
 antlrcpp::Any CodeGenVisitor::visitParent(AslParser::ParentContext *ctx) {
   DEBUG_ENTER();
   CodeAttribs codAts = visit(ctx->expr());
+  DEBUG_EXIT();
+  return codAts;
+}
+
+antlrcpp::Any CodeGenVisitor::visitFunc(AslParser::FuncContext *ctx) {
+  DEBUG_ENTER();
+  instructionList code;
+  // std::string name = ctx->ident()->ID()->getSymbol()->getText();
+  std::string name = ctx->ident()->getText();
+  TypesMgr::TypeId t1 = getTypeDecor(ctx->ident());
+  TypesMgr::TypeId tret = Types.getFuncReturnType(t1);
+
+  std::string temp = "%"+codeCounters.newTEMP();
+  if (not Types.isVoidTy(tret)) 
+    code = code || instruction::PUSH(); // push to safe space for the return type
+
+  for (long unsigned int i = 0; i < ctx->expr().size(); ++i) {
+    CodeAttribs     && codAtsE = visit(ctx->expr(i));
+    std::string          addr1 = codAtsE.addr;
+    code = code || instruction::PUSH(addr1);
+  }
+
+  code = code || instruction::CALL(name);
+
+  for (long unsigned int i = 0; i < ctx->expr().size(); ++i) 
+    code = code || instruction::POP();
+  
+  code = code || instruction::POP(temp); // pop of the return value
+  
+  CodeAttribs codAts(temp, "", code);
+
   DEBUG_EXIT();
   return codAts;
 }

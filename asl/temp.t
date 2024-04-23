@@ -1,15 +1,37 @@
->>> enter Program [source pos 1:0] [module: CodeGen]
-  >>> enter Function [source pos 1:0] [module: CodeGen]
-    >>> enter Declarations [source pos 2:2] [module: CodeGen]
-    >>> exit Declarations [source pos 2:2] [module: CodeGen]
-    >>> enter Statements [source pos 2:2] [module: CodeGen]
-      >>> enter Arithmetic [source pos 2:9] [module: CodeGen]
-        >>> enter ExprIdent [source pos 2:9] [module: CodeGen]
-          >>> enter Ident [source pos 2:9] [module: CodeGen]
-          >>> exit Ident [source pos 2:9] [module: CodeGen]
-        >>> exit ExprIdent [source pos 2:9] [module: CodeGen]
-        >>> enter ExprIdent [source pos 2:11] [module: CodeGen]
-          >>> enter Ident [source pos 2:11] [module: CodeGen]
-          >>> exit Ident [source pos 2:11] [module: CodeGen]
-        >>> exit ExprIdent [source pos 2:11] [module: CodeGen]
-      >>> exit Arithmetic [source pos 2:9] [module: CodeGen]
+function mul
+  params
+    _result integer array
+    a integer array
+    b integer array
+  endparams
+
+   %1 = a * b
+   _result = %1
+   return
+   return
+endfunction
+
+function main
+  vars
+    x integer
+    y integer
+  endvars
+
+   readi x
+   readi y
+   writes "x*y*2="
+   pushparam 
+   pushparam x
+   pushparam y
+   call mul
+   popparam 
+   popparam 
+   popparam %1
+   %2 = 2
+   %3 = %1 * %2
+   writei %3
+   writes ".\n"
+   return
+endfunction
+
+
