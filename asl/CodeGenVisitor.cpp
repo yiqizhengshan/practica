@@ -180,15 +180,51 @@ antlrcpp::Any CodeGenVisitor::visitAssignStmt(AslParser::AssignStmtContext *ctx)
   instructionList code;
   CodeAttribs     && codAtsE1 = visit(ctx->left_expr());
   std::string           addr1 = codAtsE1.addr;
-  // std::string           offs1 = codAtsE1.offs;             // es el offset que hay que sumarle a donde hay que guardarse
   instructionList &     code1 = codAtsE1.code;
-  // TypesMgr::TypeId tid1 = getTypeDecor(ctx->left_expr());
-  CodeAttribs     && codAtsE2 = visit(ctx->expr());
-  std::string           addr2 = codAtsE2.addr;
-  // std::string           offs2 = codAtsE2.offs;
-  instructionList &     code2 = codAtsE2.code;
-  // TypesMgr::TypeId tid2 = getTypeDecor(ctx->expr());
-  code = code1 || code2 || instruction::LOAD(addr1, addr2);
+
+  TypesMgr::TypeId t1 = getTypeDecor(ctx->left_expr());
+  
+  //miro si izquierda es array
+  if (Types.isArrayTy(t1)) {
+    std::string           offs1 = codAtsE1.offs;
+    CodeAttribs     && codAtsE2 = visit(ctx->expr());
+    std::string           addr2 = codAtsE2.addr;
+    instructionList &     code2 = codAtsE2.code;
+    TypesMgr::TypeId t2 = getTypeDecor(ctx->expr());
+
+    //miro si derecha es array
+    if (Types.isArrayTy(t2)) {
+      std::string           offs2 = codAtsE2.offs;
+      //XLOAD en un temporal
+      std::string temp = "%"+codeCounters.newTEMP();
+      code = code1 || code2 || instruction::LOADX(temp, addr2, offs2);
+      //LOADX en la variable
+      code = code || instruction::LOADX(addr1, offs1, temp);
+    }
+    else {
+      code = code1 || code2 || instruction::LOADX(addr1, offs1, addr2);
+    }
+  }
+  else {
+    CodeAttribs     && codAtsE2 = visit(ctx->expr());
+    std::string           addr2 = codAtsE2.addr;
+    instructionList &     code2 = codAtsE2.code;
+
+    TypesMgr::TypeId t2 = getTypeDecor(ctx->expr());
+
+    //miro si derecha es array
+    if (Types.isArrayTy(t2)) {
+      std::string           offs2 = codAtsE2.offs;
+      //XLOAD en un temporal
+      std::string temp = "%"+codeCounters.newTEMP();
+      code = code1 || code2 || instruction::LOADX(temp, addr2, offs2);
+      //LOAD en la variable
+      code = code || instruction::LOAD(addr1, temp);
+    }
+    else {
+      code = code1 || code2 || instruction::LOAD(addr1, addr2);
+    }
+  }
   DEBUG_EXIT();
   return code;
 }
@@ -235,9 +271,8 @@ antlrcpp::Any CodeGenVisitor::visitWhileStmt(AslParser::WhileStmtContext *ctx) {
 antlrcpp::Any CodeGenVisitor::visitProcCall(AslParser::ProcCallContext *ctx) {
   //HA DE SER VOID
   DEBUG_ENTER();
-  //TypesMgr::TypeId  t1 = getTypeDecor(ctx->ident());
-  //auto typesParams = Types.getFuncParamsTypes(t1);
-  std::string name = ctx->ident()->getText();
+  TypesMgr::TypeId  t1 = getTypeDecor(ctx->ident());
+  auto typesParams = Types.getFuncParamsTypes(t1);
 
   instructionList code;
   instructionList lpush;
@@ -247,15 +282,30 @@ antlrcpp::Any CodeGenVisitor::visitProcCall(AslParser::ProcCallContext *ctx) {
     CodeAttribs     &&  codAtsE = visit(ctx->expr(i));
     std::string         addr1 = codAtsE.addr;
     instructionList &   code1 = codAtsE.code;
+    TypesMgr::TypeId  tParam = getTypeDecor(ctx->expr(i));
     
     code = code || code1;
+    std::string temp = addr1;
 
-    lpush = lpush || instruction::PUSH(addr1); 
+    if (Types.isFloatTy(typesParams[i])){  //cast to float
+      temp = "%"+codeCounters.newTEMP();
+      code = code || instruction::FLOAT(temp, addr1);
+    }
+    
+    lpush = lpush || instruction::PUSH(temp); 
     lpop = lpop || instruction::POP(); 
   }
 
+  if (not Types.isVoidFunction(t1)) {
+    lpush = lpush || instruction::PUSH();
+    lpop = lpop || instruction::POP();
+  }
+
   code = code || lpush;
+
+  std::string name = ctx->ident()->getText();
   code = code || instruction::CALL(name);
+
   code = code || lpop;
   DEBUG_EXIT();
   return code;
@@ -339,10 +389,8 @@ antlrcpp::Any CodeGenVisitor::visitParent(AslParser::ParentContext *ctx) {
 antlrcpp::Any CodeGenVisitor::visitFunc(AslParser::FuncContext *ctx) {
   // NO PUEDE SER VOID
   DEBUG_ENTER();
-  //TypesMgr::TypeId  t1 = getTypeDecor(ctx->ident());
-  //auto typesParams = Types.getFuncParamsTypes(t1);
-  std::string name = ctx->ident()->getText();
-
+  TypesMgr::TypeId  t1 = getTypeDecor(ctx->ident());
+  auto typesParams = Types.getFuncParamsTypes(t1);
   instructionList code;
   instructionList lpush;
   instructionList lpop;
@@ -351,20 +399,29 @@ antlrcpp::Any CodeGenVisitor::visitFunc(AslParser::FuncContext *ctx) {
     CodeAttribs     &&  codAtsE = visit(ctx->expr(i));
     std::string         addr1 = codAtsE.addr;
     instructionList &   code1 = codAtsE.code;
-    
-    code = code || code1;
 
-    lpush = lpush || instruction::PUSH(addr1); 
+    code = code || code1;
+    std::string temp = addr1;
+    TypesMgr::TypeId  tParam = getTypeDecor(ctx->expr(i));
+
+    if (Types.isFloatTy(typesParams[i])){  //cast to float
+      temp = "%"+codeCounters.newTEMP();
+      code = code || instruction::FLOAT(temp, addr1);
+    }
+    
+    lpush = lpush || instruction::PUSH(temp); 
     lpop = lpop || instruction::POP(); 
   }
 
-  std::string temp = "%"+codeCounters.newTEMP();  // get the return value
-
   code = code || instruction::PUSH() || lpush;
-  code = code || instruction::CALL(name);
-  code = code || lpop || instruction::POP(temp);
 
-  CodeAttribs codAts(temp, "", code);
+  std::string name = ctx->ident()->getText();
+  code = code || instruction::CALL(name);
+
+  std::string temp2 = "%"+codeCounters.newTEMP();  // get the return value
+  code = code || lpop || instruction::POP(temp2);
+
+  CodeAttribs codAts(temp2, "", code);
 
   DEBUG_EXIT();
   return codAts;
@@ -456,58 +513,58 @@ antlrcpp::Any CodeGenVisitor::visitRelational(AslParser::RelationalContext *ctx)
   TypesMgr::TypeId t2 = getTypeDecor(ctx->expr(1));
   // TypesMgr::TypeId  t = getTypeDecor(ctx);
   std::string temp = "%"+codeCounters.newTEMP();
-  
-  // los dos son floats (<, <=, >, >=)
-  if (Types.isFloatTy(t1) || Types.isFloatTy(t2)) {
-    if (ctx-> LT()) {
-      code = code || instruction::FLT(temp, addr1, addr2);
-    }
-    else if (ctx-> LE()) {
-      code = code || instruction::FLE(temp, addr1, addr2);
-    }
-    else if (ctx-> EQUAL()) {
-      code = code || instruction::FEQ(temp, addr1, addr2);
-    }
-    else if (ctx->NEQ()) {
-      code = code || instruction::FEQ(temp, addr1, addr2) || instruction::NOT(temp, temp);
-    }
-    else if (ctx-> GT()) {
-      code = code || instruction::FLE(temp, addr1, addr2) || instruction::NOT(temp, temp);
-    }
-    else if (ctx-> GE()) {
-      code = code || instruction::FLT(temp, addr1, addr2) || instruction::NOT(temp, temp);
-    }
-  }
 
-  // los dos son booleans (==, !=)
-  else if (Types.isBooleanTy(t1) || Types.isBooleanTy(t2)) {
-    if (ctx-> EQUAL()) {
-      code = code || instruction::EQ(temp, addr1, addr2);
-    }
-    else if (ctx->NEQ()) {
-      code = code || instruction::EQ(temp, addr1, addr2) || instruction::NOT(temp, temp);
-    }
-  }
-
-  // los dos son enteros
-  else {
-    if (ctx-> LT()) {
+  // los 2 no son float
+  if (not Types.isFloatTy(t1) and not Types.isFloatTy(t2)) {
+    if (ctx->LT()) {
       code = code || instruction::LT(temp, addr1, addr2);
     }
-    else if (ctx-> LE()) {
+    else if (ctx->LE()) {
       code = code || instruction::LE(temp, addr1, addr2);
     }
-    else if (ctx-> EQUAL()) {
+    else if (ctx->EQUAL()) {
       code = code || instruction::EQ(temp, addr1, addr2);
     }
     else if (ctx->NEQ()) {
       code = code || instruction::EQ(temp, addr1, addr2) || instruction::NOT(temp, temp);
     }
-    else if (ctx-> GT()) {
+    else if (ctx->GT()) {
       code = code || instruction::LE(temp, addr1, addr2) || instruction::NOT(temp, temp);
     }
-    else if (ctx-> GE()) {
+    else if (ctx->GE()) {
       code = code || instruction::LT(temp, addr1, addr2) || instruction::NOT(temp, temp);
+    }
+  }
+
+  else {
+    std::string temp1 = addr1;
+    std::string temp2 = addr2;
+    if (Types.isIntegerTy(t1)) {
+      temp1 = "%"+codeCounters.newTEMP();
+      code = code || instruction::FLOAT(temp1, addr1);
+    }
+    if (Types.isIntegerTy(t2)) {
+      temp2 = "%"+codeCounters.newTEMP();
+      code = code || instruction::FLOAT(temp2, addr2);
+    }
+
+    if (ctx->LT()) {
+      code = code || instruction::FLT(temp, temp1, temp2);
+    }
+    else if (ctx->LE()) {
+      code = code || instruction::FLE(temp, temp1, temp2);
+    }
+    else if (ctx->EQUAL()) {
+      code = code || instruction::FEQ(temp, temp1, temp2);
+    }
+    else if (ctx->NEQ()) {
+      code = code || instruction::FEQ(temp, temp1, temp2) || instruction::NOT(temp, temp);
+    }
+    else if (ctx->GT()) {
+      code = code || instruction::FLE(temp, temp1, temp2) || instruction::NOT(temp, temp);
+    }
+    else if (ctx->GE()) {
+      code = code || instruction::FLT(temp, temp1, temp2) || instruction::NOT(temp, temp);
     }
   }
   
