@@ -12,8 +12,6 @@ function f
   endvars
 
      readi z
-     writei a
-     writes "\n"
      %1 = 88
      %3 = float %1
      %2 = %3 *. f
@@ -65,9 +63,7 @@ function fz
      %13 = float %12
      pushparam %8
      pushparam %13
-     pushparam 
      call f
-     popparam 
      popparam 
      popparam 
   label endif1 :
@@ -112,6 +108,9 @@ function main
    popparam 
    popparam %12
    q = %12
+   writes "q = "
+   writef q
+   writes "\n"
    %13 = 3.7
    %14 = q +. %13
    %15 = 4

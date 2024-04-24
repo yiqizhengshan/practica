@@ -305,7 +305,7 @@ antlrcpp::Any CodeGenVisitor::visitProcCall(AslParser::ProcCallContext *ctx) {
   }
 
   if (not Types.isVoidFunction(t1)) {
-    lpush = lpush || instruction::PUSH();
+    lpush = instruction::PUSH() || lpush;
     lpop = lpop || instruction::POP();
   }
 
@@ -332,7 +332,7 @@ antlrcpp::Any CodeGenVisitor::visitReadStmt(AslParser::ReadStmtContext *ctx) {
 
   //es un array
   
-  if (visit(ctx->left_expr()->expr())) 
+  if (offs1.size() > 0) 
     temp = "%"+codeCounters.newTEMP();
 
   if (Types.isCharacterTy(t1))
@@ -342,60 +342,13 @@ antlrcpp::Any CodeGenVisitor::visitReadStmt(AslParser::ReadStmtContext *ctx) {
   else //int o bool
     code = code || instruction::READI(temp);
 
-  if (ctx->left_expr()->expr()) {
+  if (offs1.size() > 0) {
     // addr1[offs1] = temp
     code = code || instruction::XLOAD(addr1, offs1, temp);
   }
 
   DEBUG_EXIT();
   return code;
-
-  //  DEBUG_ENTER();
-
-  // CodeAttribs     && codAts1 = visit(ctx->left_expr());
-  // std::string          addr1 = codAts1.addr;
-  // std::string          offs1 = codAts1.offs;
-  // instructionList       code = codAts1.code;
-  // TypesMgr::TypeId      type = getTypeDecor(ctx->left_expr());
-
-  // if (Types.isIntegerTy(type) or Types.isBooleanTy(type)){
-  //   // Identifier
-  //   if (offs1 == "")
-  //     code = code || instruction::READI(addr1);
-
-  //   // Array
-  //   else {
-  //     std::string temp = "%"+codeCounters.newTEMP();
-  //     code = code || instruction::READI(temp) || instruction::CLOAD(offs1, temp);
-  //   }
-  // }
-
-  // else if (Types.isFloatTy(type)){
-  //   // Identifier
-  //   if (offs1 == "")
-  //     code = code || instruction::READF(addr1);
-
-  //   // Array
-  //   else {
-  //     std::string temp = "%"+codeCounters.newTEMP();
-  //     code = code || instruction::READF(temp) || instruction::CLOAD(offs1, temp);
-  //   }
-  // }
-
-  // else if (Types.isCharacterTy(type)){
-  //   // Identifier
-  //   if (offs1 == "")
-  //     code = code || instruction::READC(addr1);
-
-  //   // Array
-  //   else {
-  //     std::string temp = "%"+codeCounters.newTEMP();
-  //     code = code || instruction::READC(temp) || instruction::CLOAD(offs1, temp);
-  //   }
-  // }
-
-  // DEBUG_EXIT();
-  // return code;
 }
 
 antlrcpp::Any CodeGenVisitor::visitWriteExpr(AslParser::WriteExprContext *ctx) {
