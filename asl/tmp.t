@@ -39,28 +39,29 @@ function main
      i = %1
      %2 = 1
      end = %2
-     readi max
-     %3 = i <= max
-     ifFalse %3 goto endif1
-     %4 = 0
-     end = %4
+     readi %3
+     max = %3
+     %4 = i <= max
+     ifFalse %4 goto endif1
+     %5 = 0
+     end = %5
   label endif1 :
   label startwhile1 :
-     %5 = not end
-     ifFalse %5 goto endwhile1
+     %6 = not end
+     ifFalse %6 goto endwhile1
      writei i
      writes "!="
      pushparam 
      pushparam i
      call fact
      popparam 
-     popparam %6
-     writei %6
+     popparam %7
+     writei %7
      writes "\n"
-     %7 = i == max
-     ifFalse %7 goto endif2
-     %8 = 1
-     end = %8
+     %8 = i == max
+     ifFalse %8 goto endif2
+     %9 = 1
+     end = %9
   label endif2 :
      goto startwhile1
   label endwhile1 :

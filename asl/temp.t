@@ -8,28 +8,32 @@ function f
   vars
     x integer
     b boolean
-    z integer
+    z integer 10
   endvars
 
-     readi z
-     %1 = 88
-     %3 = float %1
-     %2 = %3 *. f
-     %5 = float z
-     %4 = %5 -. %2
-     writef %4
+     %1 = 5
+     readi %2
+     z[%1] = %2
+     %3 = 5
+     %4 = z[%3]
+     %5 = 88
+     %7 = float %5
+     %6 = %7 *. f
+     %9 = float %4
+     %8 = %9 -. %6
+     writef %8
      readi b
      readf f
      ifFalse b goto endif1
      writes "h\n\tl\\a"
-     %6 = -. f
-     %7 = -. %6
-     %8 = -. %7
-     writef %8
+     %10 = -. f
+     %11 = -. %10
+     %12 = -. %11
+     writef %12
      writes "\n"
   label endif1 :
-     %9 = 1
-     _result = %9
+     %13 = 1
+     _result = %13
      return
      return
 endfunction
@@ -61,9 +65,11 @@ function fz
      %11 = 4
      %12 = %10 / %11
      %13 = float %12
+     pushparam 
      pushparam %8
      pushparam %13
      call f
+     popparam 
      popparam 
      popparam 
   label endif1 :
@@ -82,8 +88,6 @@ function main
     q float
   endvars
 
-   %1 = 1
-   %2 = - %1
    %3 = float %2
    q = %3
    %4 = 3
@@ -108,9 +112,6 @@ function main
    popparam 
    popparam %12
    q = %12
-   writes "q = "
-   writef q
-   writes "\n"
    %13 = 3.7
    %14 = q +. %13
    %15 = 4
