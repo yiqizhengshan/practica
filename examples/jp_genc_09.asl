@@ -3,7 +3,7 @@ func fact(n: int): int
     f = 1;
     while n>1 do
         f = f*n;
-	n = n-1;
+	    n = n-1;
     endwhile
     return f;
 endfunc

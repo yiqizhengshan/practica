@@ -223,10 +223,28 @@ antlrcpp::Any CodeGenVisitor::visitIfStmt(AslParser::IfStmtContext *ctx) {
   instructionList &    code1 = codAtsE.code;
   instructionList &&   code2 = visit(ctx->statements(0)); //jp_chkt_03
 
+  // hay else
+  if (ctx->statements().size() > 1) {
+    instructionList && code3 = visit(ctx->statements(1));
+    std::string label = codeCounters.newLabelIF();
+    std::string labelEndIf = "endif"+label;
+    std::string labelElse = "else"+label;
+    code =  code1 ||
+            instruction::FJUMP(addr1, labelElse) ||
+            code2 || 
+            instruction::UJUMP(labelEndIf) ||
+            instruction::LABEL(labelElse) ||
+            code3 ||
+            instruction::LABEL(labelEndIf);
+  }
+  // no hay else
+  else {
   std::string label = codeCounters.newLabelIF();
   std::string labelEndIf = "endif"+label;
   code = code1 || instruction::FJUMP(addr1, labelEndIf) ||
          code2 || instruction::LABEL(labelEndIf);
+  }
+
   DEBUG_EXIT();
   return code;
 }

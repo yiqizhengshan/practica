@@ -1,113 +1,79 @@
-function x2
+function fact
   params
     _result integer array
-    a integer array
+    n integer array
   endparams
 
   vars
-    i integer
-    n integer
+    f integer
   endvars
 
-     %1 = 0
-     n = %1
-     %2 = 0
-     i = %2
+     %1 = 1
+     f = %1
   label startwhile1 :
-     %3 = 10
-     %4 = i < %3
-     ifFalse %4 goto endwhile1
-     %6 = a
-     %5 = %6[i]
-     %7 = 80
-     %8 = %5 < %7
-     ifFalse %8 goto endif1
-     %9 = 1
-     %10 = n + %9
-     n = %10
-  label endif1 :
-     %11 = a
-     %13 = a
-     %12 = %13[i]
-     %14 = 2
-     %15 = %12 * %14
-     %11[i] = %15
-     %17 = a
-     %16 = %17[i]
-     writei %16
-     writes "\n"
-     %18 = 1
-     %19 = i + %18
-     i = %19
+     %2 = 1
+     %3 = n <= %2
+     %3 = not %3
+     ifFalse %3 goto endwhile1
+     %4 = f * n
+     f = %4
+     %5 = 1
+     %6 = n - %5
+     n = %6
      goto startwhile1
   label endwhile1 :
-     _result = n
+     _result = f
      return
      return
 endfunction
 
 function main
   vars
-    x integer 10
+    max integer
     i integer
-    z integer
+    f integer
+    end boolean
   endvars
 
      %1 = 0
      i = %1
+     %2 = 1
+     end = %2
+     readi %3
+     max = %3
+     %4 = i <= max
+     ifFalse %4 goto else1
+     %5 = 0
+     end = %5
+     goto endif1
+  label else1 :
+     %6 = 0
+     i = %6
+  label endif1 :
   label startwhile1 :
-     %2 = 10
-     %3 = i < %2
-     ifFalse %3 goto endwhile1
-     %4 = 77
-     %5 = %4 + i
-     x[i] = %5
-     %6 = 1
-     %7 = i + %6
-     i = %7
+     %7 = not end
+     ifFalse %7 goto endwhile1
+     writei i
+     writes "!="
+     pushparam 
+     pushparam i
+     call fact
+     popparam 
+     popparam %8
+     writei %8
+     writes "\n"
+     %9 = i == max
+     ifFalse %9 goto else2
+     %10 = 1
+     end = %10
+     goto endif2
+  label else2 :
+     %11 = 1
+     %12 = i + %11
+     i = %12
+  label endif2 :
      goto startwhile1
   label endwhile1 :
-     %8 = 0
-     i = %8
-  label startwhile2 :
-     %9 = 10
-     %10 = i < %9
-     ifFalse %10 goto endwhile2
-     %11 = x[i]
-     writei %11
-     writes "\n"
-     %12 = 1
-     %13 = i + %12
-     i = %13
-     goto startwhile2
-  label endwhile2 :
-     %14 = &x
-     pushparam 
-     pushparam %14
-     call x2
-     popparam 
-     popparam %15
-     z = %15
-     writes "z:"
-     writei z
-     writes "\n"
-     %16 = 0
-     i = %16
-  label startwhile3 :
-     %17 = 10
-     %18 = i < %17
-     ifFalse %18 goto endwhile3
-     writes "x["
-     writei i
-     writes "]="
-     %19 = x[i]
-     writei %19
-     writes "\n"
-     %20 = 1
-     %21 = i + %20
-     i = %21
-     goto startwhile3
-  label endwhile3 :
      return
 endfunction
 
