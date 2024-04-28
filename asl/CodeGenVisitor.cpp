@@ -198,11 +198,13 @@ antlrcpp::Any CodeGenVisitor::visitAssignStmt(AslParser::AssignStmtContext *ctx)
 
   code = code1 || code2;
 
+  // float = int/bool
   if (Types.isFloatTy(t1) and not Types.isFloatTy(t2)) {
     std::string temp = "%"+codeCounters.newTEMP();
-    code = code1 || instruction::FLOAT(temp, addr2);
+    code = code || instruction::FLOAT(temp, addr2);
     addr2 = temp;
   }
+  // addr1[offs1] = addr2
   if (offs1.size() > 0) {
     code = code || instruction::XLOAD(addr1, offs1, addr2);
   }

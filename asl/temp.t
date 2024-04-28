@@ -1,125 +1,113 @@
-function f
+function x2
   params
-    _result boolean array
+    _result integer array
     a integer array
-    f float array
   endparams
 
   vars
-    x integer
-    b boolean
-    z integer 10
+    i integer
+    n integer
   endvars
 
-     %1 = 5
-     readi %2
-     z[%1] = %2
-     %3 = 5
-     %4 = z[%3]
-     %5 = 88
-     %7 = float %5
-     %6 = %7 *. f
-     %9 = float %4
-     %8 = %9 -. %6
-     writef %8
-     readi b
-     readf f
-     ifFalse b goto endif1
-     writes "h\n\tl\\a"
-     %10 = -. f
-     %11 = -. %10
-     %12 = -. %11
-     writef %12
-     writes "\n"
-  label endif1 :
-     %13 = 1
-     _result = %13
-     return
-     return
-endfunction
-
-function fz
-  params
-    _result float array
-    r integer array
-    u float array
-  endparams
-
+     %1 = 0
+     n = %1
+     %2 = 0
+     i = %2
   label startwhile1 :
-     %1 = 0.01
-     %3 = float r
-     %2 = %3 <=. %1
-     %2 = not %2
-     ifFalse %2 goto endwhile1
-     %4 = 1
-     %5 = r - %4
-     r = %5
+     %3 = 10
+     %4 = i < %3
+     ifFalse %4 goto endwhile1
+     %6 = a
+     %5 = %6[i]
+     %7 = 80
+     %8 = %5 < %7
+     ifFalse %8 goto endif1
+     %9 = 1
+     %10 = n + %9
+     n = %10
+  label endif1 :
+     %11 = a
+     %13 = a
+     %12 = %13[i]
+     %14 = 2
+     %15 = %12 * %14
+     %11[i] = %15
+     %17 = a
+     %16 = %17[i]
+     writei %16
+     writes "\n"
+     %18 = 1
+     %19 = i + %18
+     i = %19
      goto startwhile1
   label endwhile1 :
-     %6 = 0
-     %7 = r == %6
-     ifFalse %7 goto endif1
-     %8 = 55555
-     %9 = 5
-     %10 = - %9
-     %11 = 4
-     %12 = %10 / %11
-     %13 = float %12
-     pushparam 
-     pushparam %8
-     pushparam %13
-     call f
-     popparam 
-     popparam 
-     popparam 
-  label endif1 :
-     %14 = 3
-     %15 = r + %14
-     %17 = float %15
-     %16 = %17 *. u
-     _result = %16
+     _result = n
      return
      return
 endfunction
 
 function main
   vars
-    a integer
-    q float
+    x integer 10
+    i integer
+    z integer
   endvars
 
-   %3 = float %2
-   q = %3
-   %4 = 3
-   %5 = 4
-   %6 = %4 + %5
-   %7 = 4444
-   %8 = 3
-   %10 = float %8
-   %9 = q +. %10
-   pushparam 
-   pushparam %7
-   pushparam %9
-   call fz
-   popparam 
-   popparam 
-   popparam %11
-   pushparam 
-   pushparam %6
-   pushparam %11
-   call fz
-   popparam 
-   popparam 
-   popparam %12
-   q = %12
-   %13 = 3.7
-   %14 = q +. %13
-   %15 = 4
-   %17 = float %15
-   %16 = %14 +. %17
-   writef %16
-   writes "\n"
-   return
+     %1 = 0
+     i = %1
+  label startwhile1 :
+     %2 = 10
+     %3 = i < %2
+     ifFalse %3 goto endwhile1
+     %4 = 77
+     %5 = %4 + i
+     x[i] = %5
+     %6 = 1
+     %7 = i + %6
+     i = %7
+     goto startwhile1
+  label endwhile1 :
+     %8 = 0
+     i = %8
+  label startwhile2 :
+     %9 = 10
+     %10 = i < %9
+     ifFalse %10 goto endwhile2
+     %11 = x[i]
+     writei %11
+     writes "\n"
+     %12 = 1
+     %13 = i + %12
+     i = %13
+     goto startwhile2
+  label endwhile2 :
+     pushparam 
+     pushparam x
+     call x2
+     popparam 
+     popparam %14
+     z = %14
+     writes "z:"
+     writei z
+     writes "\n"
+     %15 = 0
+     i = %15
+  label startwhile3 :
+     %16 = 10
+     %17 = i < %16
+     ifFalse %17 goto endwhile3
+     writes "x["
+     writei i
+     writes "]="
+     %18 = x[i]
+     writei %18
+     writes "\n"
+     %19 = 1
+     %20 = i + %19
+     i = %20
+     goto startwhile3
+  label endwhile3 :
+     return
 endfunction
 
 
