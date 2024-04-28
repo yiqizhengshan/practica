@@ -436,6 +436,11 @@ antlrcpp::Any CodeGenVisitor::visitFunc(AslParser::FuncContext *ctx) {
       code = code || instruction::FLOAT(temp, addr1);
     }
     
+    if (Types.isArrayTy(typesParams[i])) {
+      temp = "%"+codeCounters.newTEMP();
+      code = code || instruction::ALOAD(temp, addr1);
+    }
+
     lpush = lpush || instruction::PUSH(temp); 
     lpop = lpop || instruction::POP(); 
   }

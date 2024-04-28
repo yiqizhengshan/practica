@@ -81,30 +81,31 @@ function main
      i = %13
      goto startwhile2
   label endwhile2 :
+     %14 = &x
      pushparam 
-     pushparam x
+     pushparam %14
      call x2
      popparam 
-     popparam %14
-     z = %14
+     popparam %15
+     z = %15
      writes "z:"
      writei z
      writes "\n"
-     %15 = 0
-     i = %15
+     %16 = 0
+     i = %16
   label startwhile3 :
-     %16 = 10
-     %17 = i < %16
-     ifFalse %17 goto endwhile3
+     %17 = 10
+     %18 = i < %17
+     ifFalse %18 goto endwhile3
      writes "x["
      writei i
      writes "]="
-     %18 = x[i]
-     writei %18
+     %19 = x[i]
+     writei %19
      writes "\n"
-     %19 = 1
-     %20 = i + %19
-     i = %20
+     %20 = 1
+     %21 = i + %20
+     i = %21
      goto startwhile3
   label endwhile3 :
      return
