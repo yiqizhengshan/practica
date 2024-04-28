@@ -365,6 +365,8 @@ antlrcpp::Any CodeGenVisitor::visitWriteExpr(AslParser::WriteExprContext *ctx) {
     code = code || instruction::WRITEI(addr);
   else if (Types.isFloatTy(t1))
     code = code || instruction::WRITEF(addr);
+  else if (Types.isCharacterTy(t1))
+    code = code || instruction::WRITEC(addr);
 
   DEBUG_EXIT();
   return code;
@@ -524,6 +526,14 @@ antlrcpp::Any CodeGenVisitor::visitArithmetic(AslParser::ArithmeticContext *ctx)
       code = code || instruction::SUB(temp, addr1, addr2); // Amb floats es FSUB
     else if (ctx->DIV())
       code = code || instruction::DIV(temp, addr1, addr2); // Amb floats es FDIV
+    else if (ctx->MOD()) {
+      std::string temp1 = "%"+codeCounters.newTEMP();
+      std::string temp2 = "%"+codeCounters.newTEMP();
+      code = code ||
+            instruction::DIV(temp1, addr1, addr2) || // divend/divisor = quocient
+            instruction::MUL(temp2, temp1, addr2) || // quocient*divisor = producte
+            instruction::SUB(temp, addr1, temp2); // dividend - producte = residu
+    }
   }
   else {
     if (Types.isIntegerTy(t1)){
@@ -681,8 +691,14 @@ antlrcpp::Any CodeGenVisitor::visitValue(AslParser::ValueContext *ctx) {
     code = instruction::ILOAD(temp, ctx->getText());
   else if (ctx->FLOATVAL())
     code = instruction::FLOAD(temp, ctx->getText());
-  else if (ctx->CHARVAL()) 
-    code = instruction::CHLOAD(temp, ctx->getText());
+  else if (ctx->CHARVAL()) {
+    std::string expr = ctx->getText();
+    int size = expr.size();
+    std::string resultado = "";
+    for (int i = 0; i < size; ++i)
+      if (i > 0 and i < (size - 1)) resultado += expr[i];
+    code = instruction::CHLOAD(temp, resultado);
+  }
   else if (ctx->FALSE())
     code = instruction::ILOAD(temp, "0");
   else if (ctx->TRUE())

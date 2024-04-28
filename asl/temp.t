@@ -1,80 +1,71 @@
-function fact
-  params
-    _result integer array
-    n integer array
-  endparams
-
-  vars
-    f integer
-  endvars
-
-     %1 = 1
-     f = %1
-  label startwhile1 :
-     %2 = 1
-     %3 = n <= %2
-     %3 = not %3
-     ifFalse %3 goto endwhile1
-     %4 = f * n
-     f = %4
-     %5 = 1
-     %6 = n - %5
-     n = %6
-     goto startwhile1
-  label endwhile1 :
-     _result = f
-     return
-     return
-endfunction
-
 function main
   vars
-    max integer
-    i integer
-    f integer
-    end boolean
+    a integer
+    b integer
+    c integer
   endvars
 
-     %1 = 0
-     i = %1
-     %2 = 1
-     end = %2
-     readi %3
-     max = %3
-     %4 = i <= max
-     ifFalse %4 goto else1
-     %5 = 0
-     end = %5
-     goto endif1
-  label else1 :
-     %6 = 0
-     i = %6
-  label endif1 :
-  label startwhile1 :
-     %7 = not end
-     ifFalse %7 goto endwhile1
-     writei i
-     writes "!="
-     pushparam 
-     pushparam i
-     call fact
-     popparam 
-     popparam %8
-     writei %8
-     writes "\n"
-     %9 = i == max
-     ifFalse %9 goto else2
-     %10 = 1
-     end = %10
-     goto endif2
-  label else2 :
-     %11 = 1
-     %12 = i + %11
-     i = %12
-  label endif2 :
-     goto startwhile1
-  label endwhile1 :
-     return
+   %1 = 13
+   a = %1
+   %2 = 4
+   b = %2
+   %4 = a / b
+   %5 = %4 * b
+   %3 = a - %5
+   c = %3
+   writei c
+   %6 = '.'
+   writec %6
+   %7 = '\n'
+   writec %7
+   %8 = - a
+   %10 = %8 / b
+   %11 = %10 * b
+   %9 = %8 - %11
+   c = %9
+   writei c
+   %12 = '.'
+   writec %12
+   %13 = '\n'
+   writec %13
+   %14 = - b
+   %16 = a / %14
+   %17 = %16 * %14
+   %15 = a - %17
+   c = %15
+   writei c
+   %18 = '.'
+   writec %18
+   %19 = '\n'
+   writec %19
+   %20 = 3
+   %21 = a + %20
+   %23 = %21 / b
+   %24 = %23 * b
+   %22 = %21 - %24
+   c = %22
+   writei c
+   %25 = '.'
+   writec %25
+   %26 = '\n'
+   writec %26
+   %27 = - a
+   %28 = 3
+   %29 = %27 - %28
+   %30 = - b
+   %32 = %29 / %30
+   %33 = %32 * %30
+   %31 = %29 - %33
+   c = %31
+   writei c
+   %34 = '.'
+   writec %34
+   %35 = '\n'
+   writec %35
+   writes "HOLA"
+   %36 = '\n'
+   writec %36
+   return
 endfunction
 
 
