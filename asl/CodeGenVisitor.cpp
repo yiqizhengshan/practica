@@ -88,7 +88,7 @@ antlrcpp::Any CodeGenVisitor::visitFunction(AslParser::FunctionContext *ctx) {
 
   if (ctx->basic_type()) {
     TypesMgr::TypeId t = getTypeDecor(ctx->basic_type());
-    subr.add_param("_result", Types.to_string_basic(t), 1);
+    subr.add_param("_result", Types.to_string_basic(t), 0);
   }
   // Parameters
   visit(ctx->parameters());
@@ -327,11 +327,13 @@ antlrcpp::Any CodeGenVisitor::visitProcCall(AslParser::ProcCallContext *ctx) {
       code = code || instruction::FLOAT(temp, addr1);
     }
 
-    if (Types.isArrayTy(typesParams[i])) {
+    if (Types.isArrayTy(typesParams[i])) { 
       temp = "%"+codeCounters.newTEMP();
+      if (not Symbols.isParameterClass(ctx->expr(i)->getText()))
       code = code || instruction::ALOAD(temp, addr1);
+      else
+        code = code || instruction::LOAD(temp, addr1); 
     }
-    
     lpush = lpush || instruction::PUSH(temp); 
     lpop = lpop || instruction::POP(); 
   }
@@ -417,10 +419,11 @@ antlrcpp::Any CodeGenVisitor::visitRetStmt(AslParser::RetStmtContext *ctx) {
     CodeAttribs     && codAtExpr = visit(ctx->expr());
     std::string         addrExpr = codAtExpr.addr;
     instructionList &   codeExpr = codAtExpr.code;
-
-    code = codeExpr || instruction::LOAD("_result",addrExpr) || instruction::RETURN();
+    code = codeExpr || instruction::LOAD("_result",addrExpr);
   }
+  
   DEBUG_EXIT();
+  code = code || instruction::RETURN();
   return code;
 }
 
@@ -485,9 +488,12 @@ antlrcpp::Any CodeGenVisitor::visitFunc(AslParser::FuncContext *ctx) {
       code = code || instruction::FLOAT(temp, addr1);
     }
     
-    if (Types.isArrayTy(typesParams[i])) {
+    if (Types.isArrayTy(typesParams[i])) { 
       temp = "%"+codeCounters.newTEMP();
+      if (not Symbols.isParameterClass(ctx->expr(i)->getText()))
       code = code || instruction::ALOAD(temp, addr1);
+      else
+        code = code || instruction::LOAD(temp, addr1); 
     }
 
     lpush = lpush || instruction::PUSH(temp); 
@@ -518,11 +524,19 @@ antlrcpp::Any CodeGenVisitor::visitMinus_unari(AslParser::Minus_unariContext *ct
 
   std::string temp = "%"+codeCounters.newTEMP();
 
-  if (Types.isFloatTy(t1)) {
-    code = code || instruction::FNEG(temp, addr1);
+  if (ctx->MINUS()) {
+    if (Types.isFloatTy(t1)) {
+      code = code || instruction::FNEG(temp, addr1);
+    }
+    else {
+      code = code || instruction::NEG(temp, addr1);
+    }
   }
-  else {
-    code = code || instruction::NEG(temp, addr1);
+  else { //***********************************************************
+    if (Types.isFloatTy(t1)) {
+      code = code || instruction::FLOAD(temp, addr1);
+    }
+    else code = code || instruction::LOAD(temp, addr1);
   }
   
   CodeAttribs codAts(temp, "", code);

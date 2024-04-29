@@ -94,7 +94,7 @@ left_expr
 // Grammar for expressions with boolean, relational and aritmetic operators
 expr    : LPAR expr RPAR                                # parent
         | ident LPAR (expr (',' expr)*)? RPAR           # func
-        | op=MINUS expr                                 # minus_unari 
+        | op=(MINUS|PLUS) expr                          # minus_unari 
         | expr op=(MUL|DIV|MOD) expr                    # arithmetic
         | expr op=(PLUS|MINUS) expr                     # arithmetic
         | expr op=(EQUAL|NEQ|GT|GE|LT|LE) expr          # relational

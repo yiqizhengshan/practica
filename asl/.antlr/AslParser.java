@@ -760,7 +760,7 @@ public class AslParser extends Parser {
 				setState(124);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-				if ((((_la) & ~0x3f) == 0 && ((1L << _la) & 264157668712496L) != 0)) {
+				if ((((_la) & ~0x3f) == 0 && ((1L << _la) & 264157668778032L) != 0)) {
 					{
 					setState(116);
 					expr(0);
@@ -834,7 +834,7 @@ public class AslParser extends Parser {
 				setState(142);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-				if ((((_la) & ~0x3f) == 0 && ((1L << _la) & 264157668712496L) != 0)) {
+				if ((((_la) & ~0x3f) == 0 && ((1L << _la) & 264157668778032L) != 0)) {
 					{
 					setState(141);
 					expr(0);
@@ -1036,6 +1036,7 @@ public class AslParser extends Parser {
 			return getRuleContext(ExprContext.class,0);
 		}
 		public TerminalNode MINUS() { return getToken(AslParser.MINUS, 0); }
+		public TerminalNode PLUS() { return getToken(AslParser.PLUS, 0); }
 		public Minus_unariContext(ExprContext ctx) { copyFrom(ctx); }
 	}
 	@SuppressWarnings("CheckReturnValue")
@@ -1106,7 +1107,7 @@ public class AslParser extends Parser {
 				setState(170);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-				if ((((_la) & ~0x3f) == 0 && ((1L << _la) & 264157668712496L) != 0)) {
+				if ((((_la) & ~0x3f) == 0 && ((1L << _la) & 264157668778032L) != 0)) {
 					{
 					setState(162);
 					expr(0);
@@ -1139,7 +1140,16 @@ public class AslParser extends Parser {
 				_ctx = _localctx;
 				_prevctx = _localctx;
 				setState(174);
-				((Minus_unariContext)_localctx).op = match(MINUS);
+				((Minus_unariContext)_localctx).op = _input.LT(1);
+				_la = _input.LA(1);
+				if ( !(_la==PLUS || _la==MINUS) ) {
+					((Minus_unariContext)_localctx).op = (Token)_errHandler.recoverInline(this);
+				}
+				else {
+					if ( _input.LA(1)==Token.EOF ) matchedEOF = true;
+					_errHandler.reportMatch(this);
+					consume();
+				}
 				setState(175);
 				expr(13);
 				}
@@ -1426,8 +1436,8 @@ public class AslParser extends Parser {
 		"\n\u0001\n\u0001\n\u0001\n\u0001\n\u0001\n\u0001\n\u0001\n\u0001\n\u0001"+
 		"\n\u0001\n\u0005\n\u00ce\b\n\n\n\f\n\u00d1\t\n\u0001\u000b\u0001\u000b"+
 		"\u0001\u000b\u0000\u0001\u0014\f\u0000\u0002\u0004\u0006\b\n\f\u000e\u0010"+
-		"\u0012\u0014\u0016\u0000\u0005\u0001\u0000\u0016\u0019\u0001\u0000\u0004"+
-		"\u0005\u0001\u0000\u0012\u0014\u0001\u0000\u0010\u0011\u0001\u0000\u0007"+
+		"\u0012\u0014\u0016\u0000\u0005\u0001\u0000\u0016\u0019\u0001\u0000\u0010"+
+		"\u0011\u0001\u0000\u0004\u0005\u0001\u0000\u0012\u0014\u0001\u0000\u0007"+
 		"\f\u00ec\u0000\u0019\u0001\u0000\u0000\u0000\u0002\u001f\u0001\u0000\u0000"+
 		"\u0000\u00048\u0001\u0000\u0000\u0000\u0006=\u0001\u0000\u0000\u0000\b"+
 		"@\u0001\u0000\u0000\u0000\nL\u0001\u0000\u0000\u0000\fU\u0001\u0000\u0000"+
@@ -1502,10 +1512,10 @@ public class AslParser extends Parser {
 		"\u0000\u0000\u00a8\u00ab\u0001\u0000\u0000\u0000\u00a9\u00a7\u0001\u0000"+
 		"\u0000\u0000\u00aa\u00a2\u0001\u0000\u0000\u0000\u00aa\u00ab\u0001\u0000"+
 		"\u0000\u0000\u00ab\u00ac\u0001\u0000\u0000\u0000\u00ac\u00ad\u0005\'\u0000"+
-		"\u0000\u00ad\u00bd\u0001\u0000\u0000\u0000\u00ae\u00af\u0005\u0011\u0000"+
+		"\u0000\u00ad\u00bd\u0001\u0000\u0000\u0000\u00ae\u00af\u0007\u0001\u0000"+
 		"\u0000\u00af\u00bd\u0003\u0014\n\r\u00b0\u00b1\u0005\r\u0000\u0000\u00b1"+
 		"\u00bd\u0003\u0014\n\t\u00b2\u00bd\u0005-\u0000\u0000\u00b3\u00bd\u0005"+
-		".\u0000\u0000\u00b4\u00bd\u0005/\u0000\u0000\u00b5\u00bd\u0007\u0001\u0000"+
+		".\u0000\u0000\u00b4\u00bd\u0005/\u0000\u0000\u00b5\u00bd\u0007\u0002\u0000"+
 		"\u0000\u00b6\u00b7\u0003\u0016\u000b\u0000\u00b7\u00b8\u0005(\u0000\u0000"+
 		"\u00b8\u00b9\u0003\u0014\n\u0000\u00b9\u00ba\u0005)\u0000\u0000\u00ba"+
 		"\u00bd\u0001\u0000\u0000\u0000\u00bb\u00bd\u0003\u0016\u000b\u0000\u00bc"+
@@ -1515,8 +1525,8 @@ public class AslParser extends Parser {
 		"\u00b4\u0001\u0000\u0000\u0000\u00bc\u00b5\u0001\u0000\u0000\u0000\u00bc"+
 		"\u00b6\u0001\u0000\u0000\u0000\u00bc\u00bb\u0001\u0000\u0000\u0000\u00bd"+
 		"\u00cf\u0001\u0000\u0000\u0000\u00be\u00bf\n\f\u0000\u0000\u00bf\u00c0"+
-		"\u0007\u0002\u0000\u0000\u00c0\u00ce\u0003\u0014\n\r\u00c1\u00c2\n\u000b"+
-		"\u0000\u0000\u00c2\u00c3\u0007\u0003\u0000\u0000\u00c3\u00ce\u0003\u0014"+
+		"\u0007\u0003\u0000\u0000\u00c0\u00ce\u0003\u0014\n\r\u00c1\u00c2\n\u000b"+
+		"\u0000\u0000\u00c2\u00c3\u0007\u0001\u0000\u0000\u00c3\u00ce\u0003\u0014"+
 		"\n\f\u00c4\u00c5\n\n\u0000\u0000\u00c5\u00c6\u0007\u0004\u0000\u0000\u00c6"+
 		"\u00ce\u0003\u0014\n\u000b\u00c7\u00c8\n\b\u0000\u0000\u00c8\u00c9\u0005"+
 		"\u000e\u0000\u0000\u00c9\u00ce\u0003\u0014\n\t\u00ca\u00cb\n\u0007\u0000"+
