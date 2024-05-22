@@ -212,18 +212,46 @@ antlrcpp::Any CodeGenVisitor::visitAssignStmt(AslParser::AssignStmtContext *ctx)
       code = code || instruction::LOAD(rarray, addr2);
     }
 
-    unsigned int i = 0;
-    while (i < Types.getArraySize(t1)) {
-      // loadx -> xload;
-      std::string it = "%"+codeCounters.newTEMP();
-      std::string tmp = "%"+codeCounters.newTEMP();
-      code = code ||
-            instruction::ILOAD(it, std::to_string(i)) ||
-            instruction::LOADX(tmp, rarray, it) ||
-            instruction::XLOAD(larray, it, tmp);
-      ++i;
-    }
+    std::string label = codeCounters.newLabelWHILE();
+    std::string labelStartWhile = "startwhile"+label;
+    std::string labelEndWhile = "endwhile"+label;
 
+    // Declaramos la variable 'i' y la inicializamos a 0
+    std::string i = "%"+codeCounters.newTEMP();
+    code = code || instruction::LOAD(i, "0");
+    
+    // Declaramos la variable 'size' y la inicializamos al tamaño del array
+    std::string size = "%"+codeCounters.newTEMP();
+    code = code || instruction::LOAD(size, std::to_string(Types.getArraySize(t1)));
+
+    // Condicion del while
+    std::string cond = "%"+codeCounters.newTEMP();
+    std::string one = "%"+codeCounters.newTEMP();
+    std::string tmp = "%"+codeCounters.newTEMP();
+    std::string tmp1 = "%"+codeCounters.newTEMP();
+    code = code || instruction::LOAD(one, "1");
+
+    code = code || instruction::LABEL(labelStartWhile) ||
+         instruction::LT(cond, i, size) || // cond = i < size
+         instruction::FJUMP(cond, labelEndWhile) || // si es falsa salta al final
+         instruction::LOADX(tmp, rarray, i) || // tmp = rarray[i]
+         instruction::XLOAD(larray, i, tmp) || // larray[i] = tmp      
+         instruction::ADD(tmp1, i, one) || // i = i + 1
+         instruction::LOAD(i, tmp1) || // i = i + 1
+         instruction::UJUMP(labelStartWhile) || // vuelve a evaluar la condicion
+         instruction::LABEL(labelEndWhile);
+
+    // unsigned int i = 0;
+    // while (i < Types.getArraySize(t1)) {
+    //   // loadx -> xload;
+    //   std::string it = "%"+codeCounters.newTEMP();
+    //   std::string tmp = "%"+codeCounters.newTEMP();
+    //   code = code ||
+            // instruction::ILOAD(it, std::to_string(i)) ||
+            // instruction::LOADX(tmp, rarray, it) ||
+            // instruction::XLOAD(larray, it, tmp);
+    //   ++i;
+    // }
   }
   else {
     // float = int/bool
